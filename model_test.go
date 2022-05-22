@@ -14,6 +14,7 @@ type TestModel struct {
 	Pages     []string   `json:"pages" db:"col~pages;"`
 	SomeInt   *int       `json:"someInt" db:"col~some_int;"`
 	CreatedAt *time.Time `json:"createdAt" db:"col~created_at;cat;"`
+	Custom    *int32     `json:"custom" db:"ign"`
 }
 
 // Model table name
@@ -168,7 +169,40 @@ func TestModelColumns(t *testing.T) {
 func BenchmarkGetColumns(b *testing.B) {
 	m := NewTestModel()
 	for i := 0; i < b.N; i++ {
-		GetColumns(m, &m.Name, &m.SomeInt)
+		GetColumns(m)
+	}
+	b.ReportAllocs()
+}
+
+func BenchmarkExtract(b *testing.B) {
+	m := NewTestModel()
+	for i := 0; i < b.N; i++ {
+		extract(m)
+	}
+	b.ReportAllocs()
+}
+
+func TestPrepareMetaModel(t *testing.T) {
+	m := NewTestModel()
+	meta := PrepareMetaModel(m)
+	if meta.TableName != "test_model" {
+		t.Fatal("wrong table name")
+	}
+	if meta.Fields.Len() != 5 {
+		t.Fatal("wrong field count")
+	}
+	if (*int)(meta.Fields[0].Value) != m.Id {
+		t.Fatal("wrong field pointer id")
+	}
+	if *(*int)(meta.Fields[0].Value) != *m.Id {
+		t.Fatal("wrong field value id")
+	}
+}
+
+func BenchmarkPrepareMetaModel(b *testing.B) {
+	m := NewTestModel()
+	for i := 0; i < b.N; i++ {
+		PrepareMetaModel(m)
 	}
 	b.ReportAllocs()
 }

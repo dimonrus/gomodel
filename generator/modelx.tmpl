@@ -378,7 +378,7 @@ func (c *{{ .Model }}Collection) CreateOrUpdate(q godb.godb.Queryer) (e porterr.
 // New {{ .Model }} Collection
 func New{{ .Model }}Collection() *{{ .Model }}Collection {
     m := &{{ .Model }}{}
-    qb := godb.gosql.NewSelect().Columns(m.Columns()...).From(m.Table())
+    qb := gosql.NewSelect().Columns(m.Columns()...).From(m.Table())
     collection := &{{ .Model }}Collection{
         collection: make({{ .Model }}Items, 0),
         QB:  qb,

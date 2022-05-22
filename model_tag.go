@@ -1,6 +1,37 @@
 package gomodel
 
-import "strings"
+import (
+	"strings"
+	"unsafe"
+)
+
+// ModelFiledTagList list of ModelFiledTag
+type ModelFiledTagList []ModelFiledTag
+
+// Len count of fields
+func (l ModelFiledTagList) Len() int {
+	return len(l)
+}
+
+// HasPrimary check if primary key exists
+func (l ModelFiledTagList) HasPrimary() bool {
+	for i := range l {
+		if l[i].IsPrimaryKey {
+			return true
+		}
+	}
+	return false
+}
+
+// HasUnique check if unique key exists
+func (l ModelFiledTagList) HasUnique() bool {
+	for i := range l {
+		if l[i].IsUnique {
+			return true
+		}
+	}
+	return false
+}
 
 // ModelFiledTag All possible model field tag properties
 // tag must have 3 symbol length
@@ -25,6 +56,8 @@ type ModelFiledTag struct {
 	IsDeletedAt bool `tag:"dat"`
 	// Is ignored column
 	IsIgnored bool `tag:"ign"`
+	// Pointer to value
+	Value unsafe.Pointer
 }
 
 // Prepare string tag
