@@ -2,8 +2,6 @@ package gomodel
 
 import (
 	"github.com/dimonrus/gohelp"
-	"github.com/dimonrus/gosql"
-	"github.com/dimonrus/porterr"
 	"reflect"
 )
 
@@ -38,20 +36,20 @@ func PrepareMetaModel(model IModel) *MetaModel {
 	var k int
 	ve := reflect.ValueOf(model).Elem()
 	te := reflect.TypeOf(model).Elem()
-	meta := MetaModel{
-		TableName: gohelp.ToUnderscore(model.Table()),
+	meta := &MetaModel{
+		TableName: model.Table(),
 		Fields:    make([]ModelFiledTag, ve.NumField()),
 	}
 	for i := 0; i < ve.NumField(); i++ {
 		tField := ParseModelFiledTag(te.Field(i).Tag.Get("db"))
 		if !tField.IsIgnored {
-			tField.Value = ve.Field(i).UnsafePointer()
+			tField.Value = ve.Field(i).Addr().Interface()
 			meta.Fields[k] = tField
 			k++
 		}
 	}
 	meta.Fields = meta.Fields[:k]
-	return &meta
+	return meta
 }
 
 // GetColumn model column in table
@@ -131,57 +129,4 @@ func GetValues(model IModel, columns ...string) (values []any) {
 	}
 	values = values[:j]
 	return
-}
-
-// GetUpdate model update query
-// model - target model
-// condition - one or more where condition
-// fields - list of fields that you want to update
-func GetUpdate(model IModel, condition *gosql.Condition, fields ...any) (update *gosql.Update, e porterr.IError) {
-	if model == nil {
-		e = porterr.New(porterr.PortErrorArgument, "model is nil, check your logic")
-		return
-	}
-	if fields == nil {
-		fields = model.Values()
-		return
-	}
-	ve := reflect.ValueOf(model).Elem()
-	te := reflect.TypeOf(model).Elem()
-	update = gosql.NewUpdate()
-	for i := 0; i < ve.NumField(); i++ {
-		for _, v := range fields {
-			cte := reflect.ValueOf(v)
-			if cte.Kind() != reflect.Ptr {
-				e = porterr.New(porterr.PortErrorArgument, "Fields must be an interfaces")
-				return
-			}
-			if ve.Field(i).Addr().Pointer() == cte.Elem().Addr().Pointer() {
-				tField := ParseModelFiledTag(te.Field(i).Tag.Get("db"))
-				update.Set().Append(tField.Column+" = ?", v)
-			}
-		}
-	}
-	if update.IsEmpty() {
-		e = porterr.New(porterr.PortErrorArgument, "no columns found in model")
-		return
-	}
-	update.Table(model.Table())
-	if !condition.IsEmpty() {
-		update.Where().Replace(condition)
-	}
-	return update, e
-}
-
-// GetDelete model delete query
-func GetDelete(model IModel, condition *gosql.Condition) (delete *gosql.Delete, e porterr.IError) {
-	if model == nil {
-		e = porterr.New(porterr.PortErrorArgument, "model is nil, check your logic")
-		return
-	}
-	delete = gosql.NewDelete().From(model.Table())
-	if !condition.IsEmpty() {
-		delete.Where().Replace(condition)
-	}
-	return delete, e
 }

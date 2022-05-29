@@ -221,3 +221,25 @@ func (m *UpdateModel2) Columns() []string {
 func (m *UpdateModel2) Values() []any {
 	return []any{&m.Id, &m.Name, pq.Array(&m.Pages), &m.SomeInt, &m.CreatedAt, &m.UpdatedAt, &m.DeletedAt}
 }
+
+type DeleteModel1 struct {
+	Id        *int       `json:"id" db:"col~id;prk;req;seq"`
+	Name      *string    `json:"name" db:"col~name;req;"`
+	Pages     []string   `json:"pages" db:"col~pages;"`
+	SomeInt   *int       `json:"someInt" db:"col~some_int;unq;seq;"`
+	CreatedAt *time.Time `json:"createdAt" db:"col~created_at;cat;"`
+	UpdatedAt *time.Time `json:"updatedAt" db:"col~updated_at;uat;"`
+}
+
+// Model table name
+func (m *DeleteModel1) Table() string { return "test_model" }
+
+// Model columns
+func (m *DeleteModel1) Columns() []string {
+	return []string{"id", "name", "pages", "some_int", "created_at", "updated_at"}
+}
+
+// Model values
+func (m *DeleteModel1) Values() []any {
+	return []any{&m.Id, &m.Name, pq.Array(&m.Pages), &m.SomeInt, &m.CreatedAt, &m.UpdatedAt}
+}

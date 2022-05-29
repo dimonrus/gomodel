@@ -78,6 +78,13 @@ func TestParseModelFiledTag(t *testing.T) {
 			t.Fatal("Wrong parser column name")
 		}
 	})
+	t.Run("updated_at", func(t *testing.T) {
+		tag := "col~updated_at;uat;"
+		field := ParseModelFiledTag(tag)
+		if field.IsDeletedAt {
+			t.Fatal("Wrong parser column id deleted at")
+		}
+	})
 
 }
 

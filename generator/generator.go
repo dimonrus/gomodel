@@ -70,6 +70,7 @@ func (c Column) GetModelFieldTag() (field gomodel.ModelFiledTag) {
 	field.IsCreatedAt = c.IsCreated
 	field.IsUpdatedAt = c.IsUpdated
 	field.IsDeletedAt = c.IsDeleted
+	field.IsArray = c.IsArray
 	return
 }
 

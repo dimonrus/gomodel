@@ -1,20 +1,19 @@
 package gomodel
 
 import (
-	"github.com/dimonrus/gohelp"
 	"github.com/dimonrus/gosql"
 	"reflect"
 )
 
 // GetLoadSQL return sql query fot load model
-func GetLoadSQL(model IModel) *gosql.Select {
+func GetLoadSQL(model IModel) gosql.ISQL {
 	if model == nil {
 		return nil
 	}
 	ve := reflect.ValueOf(model).Elem()
 	te := reflect.TypeOf(model).Elem()
 	selectSql := gosql.NewSelect()
-	selectSql.From(gohelp.ToUnderscore(te.Name()))
+	selectSql.From(model.Table())
 	cond := gosql.NewSqlCondition(gosql.ConditionOperatorAnd)
 	for i := 0; i < ve.NumField(); i++ {
 		field := ve.Field(i)
@@ -28,6 +27,8 @@ func GetLoadSQL(model IModel) *gosql.Select {
 			if cond.IsEmpty() {
 				cond.AddExpression(tField.Column+" = ?", field.Interface())
 			}
+		} else if tField.IsDeletedAt {
+			cond.AddExpression(tField.Column + " IS NOT NULL")
 		}
 		selectSql.Columns().Append(tField.Column, field.Interface())
 	}

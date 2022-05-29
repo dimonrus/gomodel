@@ -2,7 +2,6 @@ package gomodel
 
 import (
 	"strings"
-	"unsafe"
 )
 
 // ModelFiledTagList list of ModelFiledTag
@@ -33,6 +32,16 @@ func (l ModelFiledTagList) HasUnique() bool {
 	return false
 }
 
+// IsSoft check if model possible to soft delete
+func (l ModelFiledTagList) IsSoft() bool {
+	for i := range l {
+		if l[i].IsDeletedAt {
+			return true
+		}
+	}
+	return false
+}
+
 // ModelFiledTag All possible model field tag properties
 // tag must have 3 symbol length
 type ModelFiledTag struct {
@@ -56,8 +65,10 @@ type ModelFiledTag struct {
 	IsDeletedAt bool `tag:"dat"`
 	// Is ignored column
 	IsIgnored bool `tag:"ign"`
-	// Pointer to value
-	Value unsafe.Pointer
+	// Is array value
+	IsArray bool `tag:"arr"`
+	// Interface to value
+	Value any
 }
 
 // Prepare string tag
@@ -92,6 +103,9 @@ func (t ModelFiledTag) String() string {
 	}
 	if t.IsIgnored {
 		b.WriteString("ign;")
+	}
+	if t.IsArray {
+		b.WriteString("arr;")
 	}
 	return b.String()
 }
@@ -128,11 +142,15 @@ func ParseModelFiledTag(tag string) (field ModelFiledTag) {
 				i++
 				indexStart = i
 			case "uat":
-				field.IsDeletedAt = true
+				field.IsUpdatedAt = true
 				i++
 				indexStart = i
 			case "dat":
 				field.IsDeletedAt = true
+				i++
+				indexStart = i
+			case "arr":
+				field.IsArray = true
 				i++
 				indexStart = i
 			case "ign":

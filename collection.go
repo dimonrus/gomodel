@@ -87,7 +87,7 @@ func (c *Collection[T]) scan(rows *sql.Rows) (e porterr.IError) {
 		}
 		err := rows.Scan(values...)
 		if err != nil {
-			e = porterr.New(porterr.PortErrorIO, "Search User scan error: "+err.Error())
+			e = porterr.New(porterr.PortErrorIO, (model).(IModel).Table()+" model scan error: "+err.Error())
 			return
 		}
 		c.AddItem(model.(*T))

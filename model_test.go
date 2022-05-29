@@ -2,7 +2,6 @@ package gomodel
 
 import (
 	"github.com/dimonrus/gohelp"
-	"github.com/dimonrus/gosql"
 	"github.com/lib/pq"
 	"testing"
 	"time"
@@ -45,63 +44,6 @@ func NewTestModel() *TestModel {
 	}
 }
 
-func TestModelDeleteQuery(t *testing.T) {
-	t.Run("with_cond", func(t *testing.T) {
-		m := NewTestModel()
-		c := gosql.NewSqlCondition(gosql.ConditionOperatorAnd)
-		c.AddExpression("created_at >= NOW()")
-		query, e := GetDelete(m, c)
-		if e != nil {
-			t.Fatal(e)
-		}
-		if query.String() != "DELETE FROM test_model WHERE (created_at >= NOW());" {
-			t.Fatal("Wrong sql prepared with_cond")
-		}
-	})
-	t.Run("without_cond", func(t *testing.T) {
-		m := NewTestModel()
-		query, e := GetDelete(m, nil)
-		if e != nil {
-			t.Fatal(e)
-		}
-		if query.String() != "DELETE FROM test_model;" {
-			t.Fatal("Wrong sql prepared")
-		}
-	})
-}
-
-func TestModelInsertQuery(t *testing.T) {
-	m := NewTestModel()
-	q := GetInsertSQL(m)
-	q.Columns().Arg("one", []string{"1", "2", "3"}, 10, time.Now())
-	q.Columns().Arg("two", []string{"2", "3", "4"}, 10, time.Now())
-	t.Log(q.String())
-	if q.String() != "INSERT INTO test_model (name, pages, some_int, created_at) VALUES (?, ?, ?, ?), (?, ?, ?, ?), (?, ?, ?, ?);" {
-		t.Fatal("wrong insert")
-	}
-	q = GetInsertSQL(m, &m.Name, &m.SomeInt)
-	q.Columns().Arg("one", 10)
-	q.Columns().Arg("two", 20)
-	if q.String() != "INSERT INTO test_model (name, some_int) VALUES (?, ?), (?, ?), (?, ?);" {
-		t.Fatal("wrong insert by columns")
-	}
-
-	q = GetInsertSQL(m, &m.Id, &m.Name, &m.Pages, &m.SomeInt)
-	if q.String() != "INSERT INTO test_model (id, name, some_int) VALUES (?, ?, ?, ?);" {
-		t.Fatal("wrong insert by keys")
-	}
-}
-
-//classic BenchmarkModelInsertQuery-8   	  689485	      1741 ns/op	     224 B/op	      11 allocs/op
-func BenchmarkModelInsertQuery(b *testing.B) {
-	m := NewTestModel()
-	for i := 0; i < b.N; i++ {
-		q := GetInsertSQL(m, &m.Id, &m.Name, &m.Pages)
-		_ = q.String()
-	}
-	b.ReportAllocs()
-}
-
 func TestModelValues(t *testing.T) {
 	m := NewTestModel()
 	values := GetValues(m, "id", "pages", "some_int")
@@ -118,33 +60,6 @@ func BenchmarkModelValues(b *testing.B) {
 	m := NewTestModel()
 	for i := 0; i < b.N; i++ {
 		GetValues(m, "id", "pages", "some_int")
-	}
-	b.ReportAllocs()
-}
-
-func TestModelColumn(t *testing.T) {
-	m := NewTestModel()
-	cond := gosql.NewSqlCondition(gosql.ConditionOperatorAnd)
-	cond.AddExpression("id = ?", 1)
-	q, e := GetUpdate(m, cond, &m.Name, &m.SomeInt)
-	if e != nil {
-		t.Fatal(e)
-	}
-	t.Log(q)
-	if q.String() != "UPDATE test_model SET name = ?, some_int = ? WHERE (id = ?);" {
-		t.Fatal("wrong update model")
-	}
-	if len(q.GetArguments()) != 3 {
-		t.Fatal("wrong args count")
-	}
-}
-
-func BenchmarkGetUpdate(b *testing.B) {
-	m := NewTestModel()
-	cond := gosql.NewSqlCondition(gosql.ConditionOperatorAnd)
-	cond.AddExpression("id = ?", 1)
-	for i := 0; i < b.N; i++ {
-		_, _ = GetUpdate(m, cond, &m.Name, &m.SomeInt)
 	}
 	b.ReportAllocs()
 }
@@ -191,11 +106,19 @@ func TestPrepareMetaModel(t *testing.T) {
 	if meta.Fields.Len() != 5 {
 		t.Fatal("wrong field count")
 	}
-	if (*int)(meta.Fields[0].Value) != m.Id {
+	if *(meta.Fields[0].Value.(**int)) != m.Id {
 		t.Fatal("wrong field pointer id")
 	}
-	if *(*int)(meta.Fields[0].Value) != *m.Id {
+	if **(meta.Fields[0].Value.(**int)) != *m.Id {
 		t.Fatal("wrong field value id")
+	}
+	var now = time.Now()
+	m.CreatedAt = &now
+	if *(meta.Fields[4].Value.(**time.Time)) != m.CreatedAt {
+		t.Fatal("wrong field pointer CreatedAt")
+	}
+	if **(meta.Fields[4].Value.(**time.Time)) != *m.CreatedAt {
+		t.Fatal("wrong field value CreatedAt")
 	}
 }
 

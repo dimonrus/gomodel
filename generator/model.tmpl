@@ -29,8 +29,8 @@ func (m *{{ .Model }}) Columns() []string {
 }
 
 // Model values
-func (m *{{ .Model }}) Values() []interface{} {
-    return []interface{}{ {{ range $key, $column := .Columns }}{{ if $key }}, {{ end }}{{ if $column.IsArray }}pq.Array({{ end }}&m.{{ $column.ModelName }}{{ if $column.IsArray  }}){{ end }}{{ end }} }
+func (m *{{ .Model }}) Values() []any {
+    return []any{ {{ range $key, $column := .Columns }}{{ if $key }}, {{ end }}{{ if $column.IsArray }}pq.Array({{ end }}&m.{{ $column.ModelName }}{{ if $column.IsArray  }}){{ end }}{{ end }} }
 }
 
 // New {{ .Model }} Collection

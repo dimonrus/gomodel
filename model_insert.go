@@ -8,7 +8,10 @@ import (
 )
 
 // GetInsertSQL model insert query
-func GetInsertSQL(model IModel, fields ...any) *gosql.Insert {
+func GetInsertSQL(model IModel, fields ...any) gosql.ISQL {
+	if model == nil {
+		return nil
+	}
 	me := reflect.ValueOf(model).Elem()
 	te := reflect.TypeOf(model).Elem()
 
