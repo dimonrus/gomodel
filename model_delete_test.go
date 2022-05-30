@@ -43,16 +43,16 @@ func TestGetDeleteSQL(t *testing.T) {
 		}
 		query, params, returning := iSql.SQL()
 		t.Log(query)
-		if query != `UPDATE test_model SET updated_at = NOW(), deleted_at = ? WHERE (id = ? AND some_int = ?) RETURNING updated_at;` {
+		if query != `UPDATE test_model SET updated_at = NOW(), deleted_at = ? WHERE (some_int = ?) RETURNING updated_at;` {
 			t.Fatal("soft wrong query")
 		}
 		if len(params) != 2 {
-			t.Fatal("soft must have 3 param")
+			t.Fatal("soft must have 2 param")
 		}
-		if *(params[1].(**int)) != model.Id {
+		if *(params[1].(**int)) != model.SomeInt {
 			t.Fatal("soft wrong param ref")
 		}
-		if **(params[1].(**int)) != *model.Id {
+		if **(params[1].(**int)) != *model.SomeInt {
 			t.Fatal("soft wrong param value")
 		}
 		if **(params[0].(**time.Time)) != *model.DeletedAt {
@@ -67,10 +67,13 @@ func TestGetDeleteSQL(t *testing.T) {
 		model.Id = &ACMId
 		iSql := GetDeleteSQL(model)
 		if iSql == nil {
-			t.Fatal("soft must be not nil")
+			t.Fatal("classic must be not nil")
 		}
 		query, params, returning := iSql.SQL()
 		t.Log(query)
+		if query != "DELETE FROM test_model WHERE (id = ?);" {
+			t.Fatal("classic wrong query")
+		}
 		if len(params) != 1 {
 			t.Fatal("classic must have 1 param")
 		}
@@ -78,6 +81,31 @@ func TestGetDeleteSQL(t *testing.T) {
 			t.Fatal("soft wrong param ref id")
 		}
 		if **(params[0].(**int)) != *model.Id {
+			t.Fatal("soft wrong param value id")
+		}
+		if len(returning) != 0 {
+			t.Fatal("soft must have 0 returning")
+		}
+	})
+	t.Run("classic_unique", func(t *testing.T) {
+		model := &DeleteModel2{}
+		model.SomeInt = &ACMSomeInt
+		iSql := GetDeleteSQL(model)
+		if iSql == nil {
+			t.Fatal("classic_unique must be not nil")
+		}
+		query, params, returning := iSql.SQL()
+		t.Log(query)
+		if query != "DELETE FROM test_model WHERE (some_int = ?);" {
+			t.Fatal("classic_unique wrong query")
+		}
+		if len(params) != 1 {
+			t.Fatal("classic must have 1 param")
+		}
+		if *(params[0].(**int)) != model.SomeInt {
+			t.Fatal("soft wrong param ref id")
+		}
+		if **(params[0].(**int)) != *model.SomeInt {
 			t.Fatal("soft wrong param value id")
 		}
 		if len(returning) != 0 {

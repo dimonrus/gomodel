@@ -3,6 +3,7 @@ package gomodel
 import (
 	"github.com/dimonrus/gosql"
 	"github.com/lib/pq"
+	"reflect"
 	"time"
 )
 
@@ -21,7 +22,7 @@ func GetDeleteSQL(model IModel) (iSQL gosql.ISQL) {
 		for i := range meta.Fields {
 			if meta.Fields[i].IsPrimaryKey {
 				hasPrimaryKey = true
-				if meta.Fields[i].Value != nil {
+				if !reflect.ValueOf(meta.Fields[i].Value).Elem().IsNil() {
 					if meta.Fields[i].IsArray {
 						upd.Where().AddExpression(meta.Fields[i].Column+" = ?", pq.Array(meta.Fields[i].Value))
 					} else {
@@ -29,7 +30,7 @@ func GetDeleteSQL(model IModel) (iSQL gosql.ISQL) {
 					}
 				}
 			} else if meta.Fields[i].IsUnique && !hasPrimaryKey {
-				if meta.Fields[i].Value != nil {
+				if !reflect.ValueOf(meta.Fields[i].Value).Elem().IsNil() {
 					if meta.Fields[i].IsArray {
 						upd.Where().AddExpression(meta.Fields[i].Column+" = ?", pq.Array(meta.Fields[i].Value))
 					} else {

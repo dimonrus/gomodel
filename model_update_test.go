@@ -39,7 +39,7 @@ func TestGetUpdateSQL(t *testing.T) {
 		q := GetUpdateSQL(m)
 		query, params, returning := q.SQL()
 		t.Log(query)
-		if query != "UPDATE test_model SET name = ?, pages = ?, some_int = ? WHERE (id = ?) RETURNING created_at, updated_at, deleted_at;" {
+		if query != "UPDATE test_model SET name = ?, pages = ?, some_int = ?, updated_at = NOW() WHERE (id = ?) RETURNING created_at, updated_at, deleted_at;" {
 			t.Fatal("wrong classic_update_1")
 		}
 		if len(params) != 4 {
@@ -65,7 +65,7 @@ func TestGetUpdateSQL(t *testing.T) {
 		q := GetUpdateSQL(m)
 		query, params, returning := q.SQL()
 		t.Log(query)
-		if query != "UPDATE test_model SET name = ?, pages = ? WHERE (some_int = ?) RETURNING id, created_at, updated_at, deleted_at;" {
+		if query != "UPDATE test_model SET name = ?, pages = ?, updated_at = NOW() WHERE (some_int = ?) RETURNING id, created_at, updated_at, deleted_at;" {
 			t.Fatal("wrong classic_update_2")
 		}
 		if len(params) != 3 {
@@ -101,7 +101,7 @@ func TestGetUpdateSQL(t *testing.T) {
 		q := GetUpdateSQL(m)
 		query, params, returning := q.SQL()
 		t.Log(query)
-		if query != "UPDATE test_model SET name = ?, pages = ? WHERE (id = ? AND some_int = ?) RETURNING created_at, updated_at, deleted_at;" {
+		if query != "UPDATE test_model SET name = ?, pages = ?, updated_at = NOW() WHERE (id = ? AND some_int = ?) RETURNING created_at, updated_at, deleted_at;" {
 			t.Fatal("wrong classic_update_3")
 		}
 		if len(params) != 4 {
