@@ -123,47 +123,34 @@ func (c *Collection[T]) Load(q godb.Queryer) porterr.IError {
 }
 
 // Save Create or Update collection items
-//func (c *Collection[T]) Save(q godb.Queryer) (e porterr.IError) {
-//	var m interface{} = new(T)
-//	if _, ok := m.(IModel); !ok {
-//		e = porterr.New(porterr.PortErrorArgument, "Type T is not implements IModel interface")
-//		return
-//	}
-//	if _, ok := m.(IModelCrud); !ok {
-//		e = porterr.New(porterr.PortErrorArgument, "Type T is not implements IModelCrud interface")
-//		return
-//	}
-//	i, err := q.Prepare(m.(IModelCrud).GetSaveQuery())
-//	if err != nil {
-//		return porterr.New(porterr.PortErrorIO, err.Error())
-//	}
-//	m.SetPrimary(0)
-//	u, err := q.Prepare(m.GetSaveQuery())
-//	if err != nil {
-//		return porterr.New(porterr.PortErrorIO, err.Error())
-//	}
-//	defer func() {
-//		if e != nil {
-//			return
-//		}
-//		_ = i.Close()
-//		_ = u.Close()
-//	}()
-//	for c.Next() {
-//		item := c.Item()
-//		if item.Id != nil {
-//			err = u.QueryRow(&item.Id, &item.LoginAttempts, &item.Password, &item.Name, &item.LanguageId, &item.LoginBlockedUntil).
-//				Scan(&item.Id, &item.CreatedAt, &item.UpdatedAt, &item.DeletedAt)
-//		} else {
-//			err = i.QueryRow(&item.LoginAttempts, &item.Password, &item.Name, &item.LanguageId, &item.LoginBlockedUntil).
-//				Scan(&item.Id, &item.CreatedAt, &item.UpdatedAt, &item.DeletedAt)
-//		}
-//		if err != nil {
-//			return porterr.New(porterr.PortErrorIO, err.Error())
-//		}
-//	}
-//	return
-//}
+func (c *Collection[T]) Save(q godb.Queryer) (e porterr.IError) {
+	var m interface{} = new(T)
+	if _, ok := m.(IModel); !ok {
+		e = porterr.New(porterr.PortErrorArgument, "Type T is not implements IModel interface")
+		return
+	}
+	var stmts = make(map[string]*godb.SqlStmt)
+	defer func() {
+		for s := range stmts {
+			_ = stmts[s].Close()
+		}
+	}()
+	var err error
+	for c.Next() {
+		query, params, returning := GetSaveSQL((interface{})(c.Item()).(IModel)).SQL()
+		if _, ok := stmts[query]; !ok {
+			stmts[query], err = q.Prepare(query)
+			if err != nil {
+				return porterr.New(porterr.PortErrorIO, err.Error())
+			}
+		}
+		err = stmts[query].QueryRow(params...).Scan(returning...)
+		if err != nil {
+			return porterr.New(porterr.PortErrorIO, err.Error())
+		}
+	}
+	return
+}
 
 // NewCollection Create new model collection
 func NewCollection[T any]() *Collection[T] {

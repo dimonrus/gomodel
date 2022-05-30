@@ -85,6 +85,22 @@ func TestParseModelFiledTag(t *testing.T) {
 			t.Fatal("Wrong parser column id deleted at")
 		}
 	})
+	t.Run("uat_dat_arr", func(t *testing.T) {
+		tag := "col~data;uat;arr;dat;"
+		field := ParseModelFiledTag(tag)
+		if !field.IsDeletedAt {
+			t.Fatal("Wrong parser column deleted at")
+		}
+		if !field.IsUpdatedAt {
+			t.Fatal("Wrong parser column updated at")
+		}
+		if !field.IsArray {
+			t.Fatal("Wrong parser column is array")
+		}
+		if len(tag) != len(field.String()) {
+			t.Fatal("wrong compile")
+		}
+	})
 
 }
 
