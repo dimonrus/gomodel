@@ -527,3 +527,10 @@ func MakeModel(db godb.Queryer, dir string, schema string, table string, templat
 	}
 	return nil
 }
+
+// TODO implement validation in model tag base on dictionary
+// TODO multiline comment
+// TODO generate crud in core
+// TODO generate list and search
+// TODO generate client with methods
+// TODO generate apis

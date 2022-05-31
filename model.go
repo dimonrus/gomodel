@@ -1,10 +1,12 @@
 package gomodel
 
 import (
+	"database/sql"
 	"github.com/dimonrus/godb/v2"
 	"github.com/dimonrus/gohelp"
 	"github.com/dimonrus/gosql"
 	"github.com/dimonrus/porterr"
+	"net/http"
 	"reflect"
 )
 
@@ -143,7 +145,11 @@ func Do(q godb.Queryer, isql gosql.ISQL) (e porterr.IError) {
 	query, params, returning := isql.SQL()
 	err := q.QueryRow(query, params...).Scan(returning...)
 	if err != nil {
-		e = porterr.New(porterr.PortErrorIO, err.Error())
+		if err == sql.ErrNoRows {
+			e = porterr.New(porterr.PortErrorSearch, "No record found. Check params or model already deleted").HTTP(http.StatusNotFound)
+		} else {
+			e = porterr.New(porterr.PortErrorIO, err.Error())
+		}
 	}
 	return
 }
