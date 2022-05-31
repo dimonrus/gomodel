@@ -149,11 +149,16 @@ func Do(q godb.Queryer, isql gosql.ISQL) (e porterr.IError) {
 }
 
 // Load get isql and load model
-func Load(q godb.Queryer, model IModel) (e porterr.IError) {
-	isql := GetLoadSQL(model)
-	if isql == nil {
-		e = porterr.New(porterr.PortErrorLoad, "ISQL is empty. Check your model")
-		return
-	}
-	return Do(q, isql)
+func Load(q godb.Queryer, model IModel) porterr.IError {
+	return Do(q, GetLoadSQL(model))
+}
+
+// Save get isql and save model
+func Save(q godb.Queryer, model IModel) porterr.IError {
+	return Do(q, GetSaveSQL(model))
+}
+
+// Delete get isql and delete model
+func Delete(q godb.Queryer, model IModel) porterr.IError {
+	return Do(q, GetDeleteSQL(model))
 }

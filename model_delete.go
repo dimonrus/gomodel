@@ -4,7 +4,6 @@ import (
 	"github.com/dimonrus/gosql"
 	"github.com/lib/pq"
 	"reflect"
-	"time"
 )
 
 // GetDeleteSQL model delete query
@@ -16,7 +15,6 @@ func GetDeleteSQL(model IModel) (iSQL gosql.ISQL) {
 	var hasPrimaryKey bool
 	meta := PrepareMetaModel(model)
 
-	var now = time.Now()
 	if meta.Fields.IsSoft() {
 		upd := gosql.NewUpdate()
 		for i := range meta.Fields {
@@ -38,8 +36,7 @@ func GetDeleteSQL(model IModel) (iSQL gosql.ISQL) {
 					}
 				}
 			} else if meta.Fields[i].IsDeletedAt {
-				*meta.Fields[i].Value.(**time.Time) = &now
-				upd.Set().Append(meta.Fields[i].Column+" = ?", meta.Fields[i].Value)
+				upd.Set().Append(meta.Fields[i].Column + " = NOW()")
 			} else if meta.Fields[i].IsUpdatedAt {
 				upd.Set().Append(meta.Fields[i].Column + " = NOW()")
 				upd.Returning().Append(meta.Fields[i].Column, meta.Fields[i].Value)

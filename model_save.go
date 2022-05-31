@@ -92,6 +92,7 @@ func GetSaveSQL(model IModel) gosql.ISQL {
 				if tField.IsCreatedAt {
 					returning.Append(tField.Column, field.Addr().Interface())
 				} else if tField.IsUpdatedAt {
+					columnsUpdate.Append(tField.Column + " = NOW()")
 					returning.Append(tField.Column, field.Addr().Interface())
 				} else if tField.IsDeletedAt {
 					returning.Append(tField.Column, field.Addr().Interface())
