@@ -13,35 +13,27 @@ type {{ .Model }} struct { {{ range $key, $column := .Columns }}
     {{ $column.ModelName }} {{ if or $column.IsArray $column.IsByteArray }} {{ $column.ModelType }} {{ else }} {{ pointerType $column.ModelType }} {{ end }} {{ $column.Tags }} {{ end }}
 }
 
-// New {{ .Model }} method
+// New{{ .Model }} init {{ .Model }} model method
 func New{{ .Model }}() *{{ .Model }} {
     return &{{ .Model }}{}
 }
 
-// Model table name
+// Table get {{ .Model }} model table name
 func (m *{{ .Model }}) Table() string {
     return "{{ .Table }}"
 }
 
-// Model columns
+// Columns get all {{ .Model }} model columns
 func (m *{{ .Model }}) Columns() []string {
     return []string{ {{ range $key, $column := .Columns }}{{ if $key }}, {{ end }}"{{ $column.Name }}"{{ end }} }
 }
 
-// Model values
+// Values get all {{ .Model }} model values
 func (m *{{ .Model }}) Values() []any {
     return []any{ {{ range $key, $column := .Columns }}{{ if $key }}, {{ end }}{{ if $column.IsArray }}pq.Array({{ end }}&m.{{ $column.ModelName }}{{ if $column.IsArray  }}){{ end }}{{ end }} }
 }
 
-// New {{ .Model }} Collection
-func New{{ .Model }}Collection() *{{ .Model }}Collection {
-    m := &{{ .Model }}{}
-    qb := gosql.NewSelect().Columns(m.Columns()...).From(m.Table())
-    collection := &{{ .Model }}Collection{
-        collection: make({{ .Model }}Items, 0),
-        QB:  qb,
-        Iterator: godb.NewIterator(0),
-        CountOver: -1,
-    }
-    return collection
+// New{{ .Model }}Collection init {{ .Model }} collection
+func New{{ .Model }}Collection() *gomodel.Collection[{{ .Model }}] {
+    return gomodel.NewCollection[{{ .Model }}]()
 }

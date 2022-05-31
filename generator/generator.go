@@ -16,7 +16,7 @@ import (
 	"text/template"
 )
 
-//go:embed modelx.tmpl
+//go:embed model.tmpl
 var DefaultModelTemplate string
 
 var DefaultSystemColumnsSoft = SystemColumns{Created: "created_at", Updated: "updated_at", Deleted: "deleted_at"}
@@ -392,11 +392,7 @@ func getModelName(schema string, table string) string {
 func MakeModel(db godb.Queryer, dir string, schema string, table string, templatePath string, systemColumns SystemColumns) error {
 	// Imports in model file
 	var imports = []string{
-		`"strings"`,
-		`"database/sql"`,
-		`"net/http"`,
-		`"github.com/dimonrus/godb/v2"`,
-		`"github.com/dimonrus/porterr"`,
+		`"github.com/dimonrus/gomodel"`,
 	}
 
 	if table == "" {
@@ -465,7 +461,7 @@ func MakeModel(db godb.Queryer, dir string, schema string, table string, templat
 		Imports     []string
 	}{
 		Model:       modelName,
-		Table:       schema + "." + table,
+		Table:       table,
 		Columns:     *columns,
 		HasSequence: hasSequence,
 		Imports:     imports,

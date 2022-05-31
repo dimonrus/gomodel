@@ -45,7 +45,7 @@ func GetSaveSQL(model IModel) gosql.ISQL {
 			} else {
 				if tField.IsSequence {
 					insert = true
-					returning.Append(tField.Column, field.Interface())
+					returning.Append(tField.Column, field.Addr().Interface())
 				} else {
 					upsert = true
 					if field.Kind() == reflect.Slice || field.Kind() == reflect.Array {
@@ -73,7 +73,7 @@ func GetSaveSQL(model IModel) gosql.ISQL {
 			} else {
 				if tField.IsSequence {
 					insert = true
-					returning.Append(tField.Column, field.Interface())
+					returning.Append(tField.Column, field.Addr().Interface())
 				} else if !insert && !update {
 					upsert = true
 					if field.Kind() == reflect.Slice || field.Kind() == reflect.Array {
@@ -90,13 +90,13 @@ func GetSaveSQL(model IModel) gosql.ISQL {
 				columnsUpdate.Append(tField.Column+" = ?", pq.Array(field.Interface()))
 			} else {
 				if tField.IsCreatedAt {
-					returning.Append(tField.Column, field.Interface())
+					returning.Append(tField.Column, field.Addr().Interface())
 				} else if tField.IsUpdatedAt {
-					returning.Append(tField.Column, field.Interface())
+					returning.Append(tField.Column, field.Addr().Interface())
 				} else if tField.IsDeletedAt {
-					returning.Append(tField.Column, field.Interface())
+					returning.Append(tField.Column, field.Addr().Interface())
 				} else if tField.IsSequence {
-					returning.Append(tField.Column, field.Interface())
+					returning.Append(tField.Column, field.Addr().Interface())
 				} else {
 					columnsInsert.Append(tField.Column, field.Interface())
 					columnsUpdate.Append(tField.Column+" = ?", field.Interface())

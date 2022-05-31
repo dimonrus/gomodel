@@ -1,7 +1,10 @@
 package gomodel
 
 import (
+	"github.com/dimonrus/godb/v2"
 	"github.com/dimonrus/gohelp"
+	"github.com/dimonrus/gosql"
+	"github.com/dimonrus/porterr"
 	"reflect"
 )
 
@@ -129,4 +132,28 @@ func GetValues(model IModel, columns ...string) (values []any) {
 	}
 	values = values[:j]
 	return
+}
+
+// Do exec query on model
+func Do(q godb.Queryer, isql gosql.ISQL) (e porterr.IError) {
+	if isql == nil {
+		e = porterr.New(porterr.PortErrorLoad, "ISQL is empty. Check your logic")
+		return
+	}
+	query, params, returning := isql.SQL()
+	err := q.QueryRow(query, params...).Scan(returning...)
+	if err != nil {
+		e = porterr.New(porterr.PortErrorIO, err.Error())
+	}
+	return
+}
+
+// Load get isql and load model
+func Load(q godb.Queryer, model IModel) (e porterr.IError) {
+	isql := GetLoadSQL(model)
+	if isql == nil {
+		e = porterr.New(porterr.PortErrorLoad, "ISQL is empty. Check your model")
+		return
+	}
+	return Do(q, isql)
 }

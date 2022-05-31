@@ -58,7 +58,7 @@ func GetInsertSQL(model IModel, fields ...any) gosql.ISQL {
 								insert.Columns().Append(tField.Column, field.Interface())
 							}
 						} else {
-							insert.Returning().Append(tField.Column, field.Interface())
+							insert.Returning().Append(tField.Column, field.Addr().Interface())
 						}
 					}
 				} else if tField.IsUnique && !hasPrimaryKey {
@@ -80,18 +80,18 @@ func GetInsertSQL(model IModel, fields ...any) gosql.ISQL {
 								insert.Columns().Append(tField.Column, field.Interface())
 							}
 						} else {
-							insert.Returning().Append(tField.Column, field.Interface())
+							insert.Returning().Append(tField.Column, field.Addr().Interface())
 						}
 					}
 				} else if !tField.IsIgnored {
 					if tField.IsCreatedAt {
-						insert.Returning().Append(tField.Column, field.Interface())
+						insert.Returning().Append(tField.Column, field.Addr().Interface())
 					} else if tField.IsUpdatedAt {
-						insert.Returning().Append(tField.Column, field.Interface())
+						insert.Returning().Append(tField.Column, field.Addr().Interface())
 					} else if tField.IsDeletedAt {
-						insert.Returning().Append(tField.Column, field.Interface())
+						insert.Returning().Append(tField.Column, field.Addr().Interface())
 					} else if tField.IsSequence {
-						insert.Returning().Append(tField.Column, field.Interface())
+						insert.Returning().Append(tField.Column, field.Addr().Interface())
 					} else {
 						if field.Kind() == reflect.Slice || field.Kind() == reflect.Array {
 							insert.Columns().Append(tField.Column, pq.Array(field.Interface()))

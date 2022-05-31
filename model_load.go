@@ -28,9 +28,9 @@ func GetLoadSQL(model IModel) gosql.ISQL {
 				cond.AddExpression(tField.Column+" = ?", field.Interface())
 			}
 		} else if tField.IsDeletedAt {
-			cond.AddExpression(tField.Column + " IS NOT NULL")
+			cond.AddExpression(tField.Column + " IS NULL")
 		}
-		selectSql.Columns().Append(tField.Column, field.Interface())
+		selectSql.Columns().Append(tField.Column, field.Addr().Interface())
 	}
 	if !cond.IsEmpty() {
 		selectSql.Where().Replace(cond)

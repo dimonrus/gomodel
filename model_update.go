@@ -49,16 +49,16 @@ func GetUpdateSQL(model IModel, fields ...any) gosql.ISQL {
 					}
 				} else if !tField.IsIgnored {
 					if tField.IsCreatedAt {
-						update.Returning().Append(tField.Column, field.Interface())
+						update.Returning().Append(tField.Column, field.Addr().Interface())
 					} else if tField.IsUpdatedAt {
 						if !field.IsNil() {
 							update.Set().Append(tField.Column+" = ?", field.Interface())
 						} else {
 							update.Set().Append(tField.Column + " = NOW()")
 						}
-						update.Returning().Append(tField.Column, field.Interface())
+						update.Returning().Append(tField.Column, field.Addr().Interface())
 					} else if tField.IsDeletedAt {
-						update.Returning().Append(tField.Column, field.Interface())
+						update.Returning().Append(tField.Column, field.Addr().Interface())
 					} else if tField.IsSequence {
 						if !field.IsNil() {
 							if field.Kind() == reflect.Slice || field.Kind() == reflect.Array {
@@ -67,7 +67,7 @@ func GetUpdateSQL(model IModel, fields ...any) gosql.ISQL {
 								condition.AddExpression(tField.Column+" = ?", field.Interface())
 							}
 						}
-						update.Returning().Append(tField.Column, field.Interface())
+						update.Returning().Append(tField.Column, field.Addr().Interface())
 					} else {
 						if field.Kind() == reflect.Slice || field.Kind() == reflect.Array {
 							update.Set().Append(tField.Column+" = ?", pq.Array(field.Interface()))
