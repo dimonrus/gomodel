@@ -122,6 +122,31 @@ func (c *Collection[T]) Load(q godb.Queryer) porterr.IError {
 	return c.scan(rows)
 }
 
+// Map collection
+func (c *Collection[T]) Map(callback func(*T)) {
+	c.Reset()
+	for c.Next() {
+		callback(c.Item())
+	}
+	return
+}
+
+// Filter collection
+func (c *Collection[T]) Filter(callback func(*T) bool) {
+	c.Reset()
+	i := 0
+	items := make([]*T, c.Count())
+	for c.Next() {
+		if callback(c.Item()) {
+			items[i] = c.Item()
+			i++
+		}
+	}
+	c.items = items[:i]
+	c.SetCount(len(c.items))
+	return
+}
+
 // Save Create or Update collection items
 func (c *Collection[T]) Save(q godb.Queryer) (e porterr.IError) {
 	var m interface{} = new(T)
