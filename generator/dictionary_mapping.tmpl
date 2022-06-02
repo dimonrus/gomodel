@@ -2,25 +2,25 @@
 package {{ .Package }}
 
 const ({{$dType := ""}}
-{{ range $item := .Dictionaries }}{{if ne $dType $item.Type}}{{$dType = $item.Type}}
+{{ range $item := .Dictionaries }}{{$tt := deref $item.Type}}{{if ne $dType $tt}}{{$dType = $tt}}
 {{ end }}{{ $item.Type | camelCase }}{{ $item.Code | camelCase }} = {{ $item.Id }} {{ if $item.Label }} // {{ $item.Label }} {{ end }}
 {{ end }}
-{{ range $item := .Dictionaries }}{{if ne $dType $item.Type}}{{$dType = $item.Type}}
+{{ range $item := .Dictionaries }}{{$tt := deref $item.Type}}{{if ne $dType $tt}}{{$dType = $tt}}
 {{ end }}{{ $item.Type | camelCase }}{{ $item.Code | camelCase }}Code = "{{ $item.Code }}" {{ if $item.Label }} // {{ $item.Label }} {{ end }}
 {{ end }}
 )
 
 var ({{$dType = ""}}
-{{ range $item := .Dictionaries }}
-    {{if ne $dType $item.Type}}{{ if ne $dType ""}} } {{ end }}
-    {{$dType = $item.Type}}
+{{ range $item := .Dictionaries }}{{$tt := deref $item.Type}}
+    {{if ne $dType $tt}}{{ if ne $dType ""}} } {{ end }}
+    {{$dType = $tt}}
     Identifier{{ $item.Type | camelCase }}Map = map[int32]string {
     {{ $item.Type | camelCase }}{{ $item.Code | camelCase }}: {{ $item.Type | camelCase }}{{ $item.Code | camelCase }}Code,{{ else }}{{ $item.Type | camelCase }}{{ $item.Code | camelCase }}: {{ $item.Type | camelCase }}{{ $item.Code | camelCase }}Code,{{ end }}{{ end }}
 }
 {{$dType = ""}}
-{{ range $item := .Dictionaries }}
-    {{if ne $dType $item.Type}}{{ if ne $dType ""}} } {{ end }}
-    {{$dType = $item.Type}}
+{{ range $item := .Dictionaries }}{{$tt := deref $item.Type}}
+    {{if ne $dType $tt}}{{ if ne $dType ""}} } {{ end }}
+    {{$dType = $tt}}
     Code{{ $item.Type | camelCase }}Map = map[string]int32 {
     {{ $item.Type | camelCase }}{{ $item.Code | camelCase }}Code: {{ $item.Type | camelCase }}{{ $item.Code | camelCase }},{{ else }}{{ $item.Type | camelCase }}{{ $item.Code | camelCase }}Code: {{ $item.Type | camelCase }}{{ $item.Code | camelCase }},{{ end }}{{ end }}
 }

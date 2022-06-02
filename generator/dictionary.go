@@ -1,12 +1,11 @@
 package generator
 
 import (
-	"database/sql"
 	_ "embed"
 	"fmt"
 	"github.com/dimonrus/godb/v2"
 	"github.com/dimonrus/gohelp"
-	"github.com/dimonrus/gosql"
+	"github.com/dimonrus/gomodel"
 	"os"
 	"os/exec"
 	"strings"
@@ -35,46 +34,18 @@ type DictionaryModel struct {
 }
 
 // Model columns
+func (m *DictionaryModel) Table() string {
+	return "dictionary"
+}
+
+// Model columns
 func (m *DictionaryModel) Columns() []string {
 	return []string{"id", "type", "code", "label", "created_at", "updated_at", "deleted_at"}
 }
 
 // Model values
 func (m *DictionaryModel) Values() (values []interface{}) {
-	return []interface{}{values, &m.Id, &m.Type, &m.Code, &m.Label, &m.CreatedAt, &m.UpdatedAt, &m.DeletedAt}
-}
-
-// Parse model column
-func (m *DictionaryModel) parse(rows *sql.Rows) (*DictionaryModel, error) {
-	err := rows.Scan(m.Values()...)
-	if err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-// Search by filer
-func (m *DictionaryModel) SearchDictionary(q godb.Queryer) (*[]DictionaryModel, []int32, error) {
-	qb := gosql.NewSelect().From("public.dictionary")
-	qb.Columns().Add((&DictionaryModel{}).Columns()...)
-	qb.AddOrder("type", "created_at", "id")
-	rows, err := q.Query(qb.String(), qb.GetArguments()...)
-
-	entityIds := make([]int32, 0)
-	if err != nil {
-		return nil, entityIds, err
-	}
-	defer rows.Close()
-	var result []DictionaryModel
-	for rows.Next() {
-		row, err := (&DictionaryModel{}).parse(rows)
-		if err != nil {
-			return &result, entityIds, err
-		}
-		entityIds = append(entityIds, *row.Id)
-		result = append(result, *row)
-	}
-	return &result, entityIds, nil
+	return []interface{}{&m.Id, &m.Type, &m.Code, &m.Label, &m.CreatedAt, &m.UpdatedAt, &m.DeletedAt}
 }
 
 // Create Table
@@ -111,10 +82,13 @@ CREATE INDEX IF NOT EXISTS dictionary_type_idx ON dictionary (type);`
 
 // Create or update dictionary mapping
 func GenerateDictionaryMapping(path string, q godb.Queryer) error {
-	dictionaries, _, err := (&DictionaryModel{}).SearchDictionary(q)
-	if err != nil {
-		return err
+	collection := gomodel.NewCollection[DictionaryModel]()
+	collection.AddOrder("type", "created_at", "id")
+	e := collection.Load(q)
+	if e != nil {
+		return e
 	}
+	dictionaries := collection.Items()
 
 	f, err := os.Create(path)
 	if err != nil {
@@ -126,10 +100,10 @@ func GenerateDictionaryMapping(path string, q godb.Queryer) error {
 	packageName := paths[len(paths)-2]
 	tml := getDictionaryTemplate()
 	err = tml.Execute(f, struct {
-		Dictionaries []DictionaryModel
+		Dictionaries []*DictionaryModel
 		Package      string
 	}{
-		Dictionaries: *dictionaries,
+		Dictionaries: dictionaries,
 		Package:      packageName,
 	})
 
@@ -142,17 +116,20 @@ func GenerateDictionaryMapping(path string, q godb.Queryer) error {
 
 	cmd := exec.Command("go", "fmt", path)
 	err = cmd.Run()
-	if err != nil {
-		return err
-	}
 
-	return nil
+	return cmd.Run()
 }
 
 func getDictionaryTemplate() *template.Template {
 	funcMap := template.FuncMap{
 		"camelCase": func(str string) string {
 			return gohelp.ToCamelCase(str, true)
+		},
+		"deref": func(str *string) string {
+			if str != nil {
+				return *str
+			}
+			return ""
 		},
 	}
 	return template.Must(template.New("").Funcs(funcMap).Parse(DefaultDictionaryTemplate))

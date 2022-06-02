@@ -13,11 +13,6 @@ type {{ .Model }} struct { {{ range $key, $column := .Columns }}
     {{ $column.ModelName }} {{ if or $column.IsArray $column.IsByteArray }} {{ $column.ModelType }} {{ else }} {{ pointerType $column.ModelType }} {{ end }} {{ $column.Tags }} {{ end }}
 }
 
-// New{{ .Model }} init {{ .Model }} model method
-func New{{ .Model }}() *{{ .Model }} {
-    return &{{ .Model }}{}
-}
-
 // Table get {{ .Model }} model table name
 func (m *{{ .Model }}) Table() string {
     return "{{ .Table }}"
@@ -31,6 +26,11 @@ func (m *{{ .Model }}) Columns() []string {
 // Values get all {{ .Model }} model values
 func (m *{{ .Model }}) Values() []any {
     return []any{ {{ range $key, $column := .Columns }}{{ if $key }}, {{ end }}{{ if $column.IsArray }}pq.Array({{ end }}&m.{{ $column.ModelName }}{{ if $column.IsArray  }}){{ end }}{{ end }} }
+}
+
+// New{{ .Model }} init {{ .Model }} model method
+func New{{ .Model }}() *{{ .Model }} {
+    return &{{ .Model }}{}
 }
 
 // New{{ .Model }}Collection init {{ .Model }} collection
