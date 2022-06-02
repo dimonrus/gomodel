@@ -15,3 +15,22 @@ func TestMakeModel(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestGenerateDictionaryMapping(t *testing.T) {
+	db, _ := initDb()
+	e := GenerateDictionaryMapping("models/dictionary_mapping.go", db)
+	if e != nil {
+		t.Fatal(e)
+	}
+}
+
+func TestDictionaryUtils(t *testing.T) {
+	db, _ := initDb()
+	items := getDictionaryItems(db)
+	if _, ok := items.IsDictionaryColumn("login_type_id"); !ok {
+		t.Fatal("must be a dictionary item")
+	}
+	if _, ok := items.IsDictionaryColumn("some_new_column"); ok {
+		t.Fatal("must not be a dictionary item")
+	}
+}

@@ -74,6 +74,28 @@ func (c Column) GetModelFieldTag() (field gomodel.ModelFiledTag) {
 	return
 }
 
+// PrepareValidTag if dictionary item
+func (c Column) PrepareValidTag(dictionary DictionaryItems) string {
+	if c.ForeignTable == nil || *c.ForeignTable != "dictionary" {
+		return ""
+	}
+	var valid []string
+	var validTag string
+	if !c.IsNullable {
+		valid = []string{"required"}
+	}
+	if dType, ok := dictionary.IsDictionaryColumn(c.Name); ok {
+		enum := dictionary.GetTypeEnum(dType)
+		if len(enum) > 0 {
+			valid = append(valid, "enum~"+enum)
+		}
+	}
+	if len(valid) > 0 {
+		validTag = ` valid:"` + strings.Join(valid, ";") + `"`
+	}
+	return validTag
+}
+
 // Array of columns
 type Columns []Column
 
@@ -118,7 +140,7 @@ func parseColumnRow(rows *sql.Rows) (*Column, error) {
 }
 
 // Get table columns from db
-func GetTableColumns(dbo godb.Queryer, schema string, table string, sysCols SystemColumns) (*Columns, error) {
+func GetTableColumns(dbo godb.Queryer, schema string, table string, sysCols SystemColumns, dictionary DictionaryItems) (*Columns, error) {
 	query := fmt.Sprintf(`
 SELECT a.attname                                                                       AS column_name,
        format_type(a.atttypid, a.atttypmod)                                            AS data_type,
@@ -201,7 +223,10 @@ ORDER BY a.attnum;`, schema, table)
 			column.IsDeleted = true
 		}
 		fTag := column.GetModelFieldTag()
-		column.Tags = fmt.Sprintf(`%cdb:"%s" json:"%s"%c`, '`', fTag.String(), json, '`')
+
+		validTag := column.PrepareValidTag(dictionary)
+
+		column.Tags = fmt.Sprintf(`%cdb:"%s" json:"%s"%s%c`, '`', fTag.String(), json, validTag, '`')
 
 		switch {
 		case column.DataType == "bigint":
@@ -416,11 +441,13 @@ func MakeModel(db godb.Queryer, dir string, schema string, table string, templat
 		return err
 	}
 
+	dictionaryItems := getDictionaryItems(db)
+
 	// Open model template
 	tmpl = template.Must(tmpl.Parse(tmlString))
 
 	// Columns
-	columns, err := GetTableColumns(db, schema, table, systemColumns)
+	columns, err := GetTableColumns(db, schema, table, systemColumns, dictionaryItems)
 	if err != nil {
 		return err
 	}
