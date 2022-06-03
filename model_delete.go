@@ -37,6 +37,7 @@ func GetDeleteSQL(model IModel) (iSQL gosql.ISQL) {
 				}
 			} else if meta.Fields[i].IsDeletedAt {
 				upd.Set().Append(meta.Fields[i].Column + " = NOW()")
+				upd.Returning().Append(meta.Fields[i].Column, meta.Fields[i].Value)
 			} else if meta.Fields[i].IsUpdatedAt {
 				upd.Set().Append(meta.Fields[i].Column + " = NOW()")
 				upd.Returning().Append(meta.Fields[i].Column, meta.Fields[i].Value)

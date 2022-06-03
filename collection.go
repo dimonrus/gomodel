@@ -177,6 +177,40 @@ func (c *Collection[T]) Save(q godb.Queryer) (e porterr.IError) {
 	return
 }
 
+// Delete delete items in collection
+func (c *Collection[T]) Delete(q godb.Queryer) (e porterr.IError) {
+	var m interface{} = new(T)
+	if _, ok := m.(IModel); !ok {
+		e = porterr.New(porterr.PortErrorArgument, "Type T is not implements IModel interface")
+		return
+	}
+	var stmts = make(map[string]*godb.SqlStmt)
+	defer func() {
+		for s := range stmts {
+			_ = stmts[s].Close()
+		}
+	}()
+	var err error
+	for c.Next() {
+		query, params, returning := GetDeleteSQL((interface{})(c.Item()).(IModel)).SQL()
+		if _, ok := stmts[query]; !ok {
+			stmts[query], err = q.Prepare(query)
+			if err != nil {
+				return porterr.New(porterr.PortErrorIO, err.Error())
+			}
+		}
+		if len(returning) > 0 {
+			err = stmts[query].QueryRow(params...).Scan(returning...)
+		} else {
+			_, err = stmts[query].Exec(params...)
+		}
+		if err != nil {
+			return porterr.New(porterr.PortErrorIO, err.Error())
+		}
+	}
+	return
+}
+
 // NewCollection Create new model collection
 func NewCollection[T any]() *Collection[T] {
 	var item interface{} = new(T)
