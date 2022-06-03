@@ -7,9 +7,10 @@ import (
 {{ end }}
 )
 {{ $index := 0 }}{{ $comma := 0 }}{{ $isSoft := false }}
-// {{ .Model }} model
-type {{ .Model }} struct { {{ range $key, $column := .Columns }}
-    {{ if $column.Description }}// {{ $column.Description }}{{ end }}
+// {{ .Model }} model{{ if ne .TableDescription ""}}
+// {{ .TableDescription }}{{ end }}
+type {{ .Model }} struct { {{ range $key, $column := .Columns }}{{ if $column.Description }}
+    // {{ $column.Description }}{{ end }}
     {{ $column.ModelName }} {{ if or $column.IsArray $column.IsByteArray }} {{ $column.ModelType }} {{ else }} {{ pointerType $column.ModelType }} {{ end }} {{ $column.Tags }} {{ end }}
 }
 

@@ -54,6 +54,7 @@ type Column struct {
 	IsDeleted         bool    // Is deleted at column
 	HasUniqueIndex    bool    // If column is a part of unique index
 	UniqueIndexName   *string // Unique index name
+	TableDescription  *string // Table description
 	DefaultTypeValue  *string // Default value for type
 }
 
@@ -76,18 +77,17 @@ func (c Column) GetModelFieldTag() (field gomodel.ModelFiledTag) {
 
 // PrepareValidTag if dictionary item
 func (c Column) PrepareValidTag(dictionary DictionaryItems) string {
-	if c.ForeignTable == nil || *c.ForeignTable != "dictionary" {
-		return ""
-	}
 	var valid []string
 	var validTag string
-	if !c.IsNullable {
+	if !c.IsNullable && c.Sequence == nil && !(c.IsCreated || c.IsUpdated || c.IsDeleted) {
 		valid = []string{"required"}
 	}
-	if dType, ok := dictionary.IsDictionaryColumn(c.Name); ok {
-		enum := dictionary.GetTypeEnum(dType)
-		if len(enum) > 0 {
-			valid = append(valid, "enum~"+enum)
+	if c.ForeignTable != nil && *c.ForeignTable == "dictionary" {
+		if dType, ok := dictionary.IsDictionaryColumn(c.Name); ok {
+			enum := dictionary.GetTypeEnum(dType)
+			if len(enum) > 0 {
+				valid = append(valid, "enum~"+enum)
+			}
 		}
 	}
 	if len(valid) > 0 {
@@ -111,6 +111,14 @@ func (c Columns) GetImports() []string {
 	return imports
 }
 
+// GetTableDescription get table comment
+func (c Columns) GetTableDescription() string {
+	if len(c) > 0 && c[0].TableDescription != nil {
+		return strings.Join(strings.Split(*c[0].TableDescription, "\n"), "\n// ")
+	}
+	return ""
+}
+
 // Parse Row
 func parseColumnRow(rows *sql.Rows) (*Column, error) {
 	column := Column{}
@@ -130,6 +138,7 @@ func parseColumnRow(rows *sql.Rows) (*Column, error) {
 		&column.Description,
 		&column.HasUniqueIndex,
 		&column.UniqueIndexName,
+		&column.TableDescription,
 	)
 
 	if err != nil {
@@ -172,7 +181,8 @@ SELECT a.attname                                                                
                  JOIN pg_index i ON ins.indexdef = pg_get_indexdef(i.indexrelid)
         WHERE i.indisunique IS TRUE
           AND i.indrelid = a.attrelid
-          AND a.attnum = ANY (i.indkey))                                               AS unique_index_name
+          AND a.attnum = ANY (i.indkey))                                               AS unique_index_name,
+        obj_description(t.oid)                                                         AS table_description
 FROM pg_attribute a
          JOIN pg_class t ON a.attrelid = t.oid
          JOIN pg_namespace s ON t.relnamespace = s.oid
@@ -221,6 +231,9 @@ ORDER BY a.attnum;`, schema, table)
 		}
 		if column.Name == sysCols.Deleted {
 			column.IsDeleted = true
+		}
+		if column.Description != nil {
+			*column.Description = strings.Join(strings.Split(*column.Description, "\n"), "\n// ")
 		}
 		fTag := column.GetModelFieldTag()
 
@@ -456,6 +469,9 @@ func MakeModel(db godb.Queryer, dir string, schema string, table string, templat
 		return errors.New("No table found or no columns in table ")
 	}
 
+	// Table comment
+	tableDescription := columns.GetTableDescription()
+
 	// Collect imports
 	for _, column := range *columns {
 		imports = gohelp.AppendUnique(imports, column.Import)
@@ -481,17 +497,19 @@ func MakeModel(db godb.Queryer, dir string, schema string, table string, templat
 
 	// Parse template to file
 	err = tmpl.Execute(file, struct {
-		Model       string
-		Table       string
-		Columns     Columns
-		HasSequence bool
-		Imports     []string
+		Model            string
+		Table            string
+		TableDescription string
+		Columns          Columns
+		HasSequence      bool
+		Imports          []string
 	}{
-		Model:       modelName,
-		Table:       table,
-		Columns:     *columns,
-		HasSequence: hasSequence,
-		Imports:     imports,
+		Model:            modelName,
+		Table:            table,
+		TableDescription: tableDescription,
+		Columns:          *columns,
+		HasSequence:      hasSequence,
+		Imports:          imports,
 	})
 
 	if err != nil {
@@ -555,8 +573,6 @@ func MakeModel(db godb.Queryer, dir string, schema string, table string, templat
 	return nil
 }
 
-// TODO implement validation in model tag base on dictionary
-// TODO multiline comment
 // TODO generate crud in core
 // TODO generate list and search
 // TODO generate client with methods
