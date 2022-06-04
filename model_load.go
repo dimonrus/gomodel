@@ -7,11 +7,12 @@ import (
 
 // GetLoadSQL return sql query fot load model
 func GetLoadSQL(model IModel) gosql.ISQL {
-	if model == nil {
+	ve := reflect.ValueOf(model)
+	te := reflect.TypeOf(model).Elem()
+	if ve.IsNil() {
 		return nil
 	}
-	ve := reflect.ValueOf(model).Elem()
-	te := reflect.TypeOf(model).Elem()
+	ve = ve.Elem()
 	selectSql := gosql.NewSelect()
 	selectSql.From(model.Table())
 	cond := gosql.NewSqlCondition(gosql.ConditionOperatorAnd)

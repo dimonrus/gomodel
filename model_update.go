@@ -10,17 +10,18 @@ import (
 // model - target model
 // fields - list of fields that you want to update
 func GetUpdateSQL(model IModel, fields ...any) gosql.ISQL {
-	if model == nil {
+	var ve = reflect.ValueOf(model)
+	var te = reflect.TypeOf(model).Elem()
+	if ve.IsNil() {
 		return nil
 	}
+	ve = ve.Elem()
 	if fields == nil {
 		fields = model.Values()
 	}
 	var hasPrimaryKey bool
 	var condition = gosql.NewSqlCondition(gosql.ConditionOperatorAnd)
 	var update = gosql.NewUpdate()
-	var ve = reflect.ValueOf(model).Elem()
-	var te = reflect.TypeOf(model).Elem()
 	for i := 0; i < ve.NumField(); i++ {
 		field := ve.Field(i)
 		for _, v := range fields {

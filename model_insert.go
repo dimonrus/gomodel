@@ -9,12 +9,12 @@ import (
 
 // GetInsertSQL model insert query
 func GetInsertSQL(model IModel, fields ...any) gosql.ISQL {
-	if model == nil {
+	me := reflect.ValueOf(model)
+	te := reflect.TypeOf(model).Elem()
+	if me.IsNil() {
 		return nil
 	}
-	me := reflect.ValueOf(model).Elem()
-	te := reflect.TypeOf(model).Elem()
-
+	me = me.Elem()
 	var values []any
 	var insert = gosql.NewInsert()
 	var conflict = gosql.NewConflict()

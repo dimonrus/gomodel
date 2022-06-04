@@ -6,8 +6,8 @@ github.com/dimonrus/gohelp v1.1.0 h1:Cou37McA5SsycPBn4/J03q6tGNUyRAlf8zbt+iQdSUQ
 github.com/dimonrus/gohelp v1.1.0/go.mod h1:0zBPZxKW6rn2NEMWiCxyswKTdqM6UnSFrbR5H846ujk=
 github.com/dimonrus/gosql v0.4.4 h1:SQIk5QFqZrw1lXRQLWMZFIdGIskZe56y48wJJoXGC+A=
 github.com/dimonrus/gosql v0.4.4/go.mod h1:lPkKWiSCED2RZQxaCHgFqazDPVvEADdvBURXJn4Bevw=
-github.com/dimonrus/porterr v1.10.3 h1:nacyiufF4RfCI4YFPKLJshxLlPeBhxM7QaoSzOlGeqU=
-github.com/dimonrus/porterr v1.10.3/go.mod h1:BCVpaUyYdawPPzeAa8yjCYvemctND1I9ER/nFnOyDgQ=
+github.com/dimonrus/porterr v1.10.4 h1:pq8qIep+wUzSzWVMyg4F3RaSg2ltOfWGDa5cMrnh8mI=
+github.com/dimonrus/porterr v1.10.4/go.mod h1:BCVpaUyYdawPPzeAa8yjCYvemctND1I9ER/nFnOyDgQ=
 github.com/lib/pq v1.10.6 h1:jbk+ZieJ0D7EVGJYpL9QTz7/YW6UHbmdnZWYyK5cdBs=
 github.com/lib/pq v1.10.6/go.mod h1:AlVN5x4E4T544tWzH6hKfbfQvm3HdbOxrmggDNAPY9o=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405 h1:yhCVgyC4o1eVCa2tZl7eS0r+SDo693bJlVdllGtEeKM=

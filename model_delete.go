@@ -9,12 +9,11 @@ import (
 // GetDeleteSQL model delete query
 // model - target model
 func GetDeleteSQL(model IModel) (iSQL gosql.ISQL) {
-	if model == nil {
+	meta := PrepareMetaModel(model)
+	if meta == nil {
 		return
 	}
 	var hasPrimaryKey bool
-	meta := PrepareMetaModel(model)
-
 	if meta.Fields.IsSoft() {
 		upd := gosql.NewUpdate()
 		for i := range meta.Fields {

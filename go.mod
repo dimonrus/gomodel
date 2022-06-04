@@ -7,7 +7,7 @@ require (
 	github.com/dimonrus/godb/v2 v2.0.0-rc1
 	github.com/dimonrus/gohelp v1.1.0
 	github.com/dimonrus/gosql v0.4.4
-	github.com/dimonrus/porterr v1.10.3
+	github.com/dimonrus/porterr v1.10.4
 	github.com/lib/pq v1.10.6
 )
 

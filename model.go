@@ -35,12 +35,13 @@ type MetaModel struct {
 
 // PrepareMetaModel Prepare Meta Model definition
 func PrepareMetaModel(model IModel) *MetaModel {
-	if model == nil {
+	ve := reflect.ValueOf(model)
+	if ve.IsNil() {
 		return nil
 	}
-	var k int
-	ve := reflect.ValueOf(model).Elem()
+	ve = ve.Elem()
 	te := reflect.TypeOf(model).Elem()
+	var k int
 	meta := &MetaModel{
 		TableName: model.Table(),
 		Fields:    make([]ModelFiledTag, ve.NumField()),

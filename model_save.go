@@ -10,11 +10,12 @@ import (
 // it can be insert or update or upsert
 // some popular scenario was implemented. not all
 func GetSaveSQL(model IModel) gosql.ISQL {
-	if model == nil {
+	ve := reflect.ValueOf(model)
+	te := reflect.TypeOf(model).Elem()
+	if ve.IsNil() {
 		return nil
 	}
-	ve := reflect.ValueOf(model).Elem()
-	te := reflect.TypeOf(model).Elem()
+	ve = ve.Elem()
 	var columnsInsert = gosql.NewExpression()
 	var columnsUpdate = gosql.NewExpression()
 	var conflictObject = gosql.NewExpression()
