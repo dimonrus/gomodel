@@ -1,4 +1,4 @@
-package generator
+package gomodel
 
 import (
 	_ "embed"

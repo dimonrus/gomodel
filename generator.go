@@ -1,4 +1,4 @@
-package generator
+package gomodel
 
 import (
 	"database/sql"
@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"github.com/dimonrus/godb/v2"
 	"github.com/dimonrus/gohelp"
-	"github.com/dimonrus/gomodel"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -59,7 +58,7 @@ type Column struct {
 }
 
 // GetModelFieldTag Prepare ModelFiledTag by Column
-func (c Column) GetModelFieldTag() (field gomodel.ModelFiledTag) {
+func (c Column) GetModelFieldTag() (field ModelFiledTag) {
 	field.Column = c.Name
 	if c.ForeignColumnName != nil {
 		field.ForeignKey = *c.ForeignSchema + "." + *c.ForeignTable + "." + *c.ForeignColumnName

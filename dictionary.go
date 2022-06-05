@@ -1,4 +1,4 @@
-package generator
+package gomodel
 
 import (
 	_ "embed"
@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/dimonrus/godb/v2"
 	"github.com/dimonrus/gohelp"
-	"github.com/dimonrus/gomodel"
 	"os"
 	"os/exec"
 	"strconv"
@@ -174,7 +173,7 @@ func getDictionaryTemplate() *template.Template {
 
 // Get all dictionary items sorted by type and created_at
 func getDictionaryItems(q godb.Queryer) DictionaryItems {
-	collection := gomodel.NewCollection[DictionaryModel]()
+	collection := NewCollection[DictionaryModel]()
 	collection.AddOrder("type", "created_at", "id")
 	e := collection.Load(q)
 	if e != nil {
