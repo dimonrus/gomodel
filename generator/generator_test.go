@@ -10,7 +10,19 @@ func TestMakeModel(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = MakeModel(db, "models", "public", "login", "", DefaultSystemColumnsSoft)
+	err = MakeModel(db, "models", "public", "reset_password", "", DefaultSystemColumnsSoft)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestGenerateCrud(t *testing.T) {
+	db, err := initDb()
+	db.Debug = false
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = GenerateCrud("core", "client", "public", "login", "", db)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -1,0 +1,37 @@
+package {{ .Package }}
+
+import (
+{{ range $key, $import := .Imports }}{{ $import }}
+{{ end }}
+)
+
+// Define wrapper for db model
+type {{ .Model }} struct {
+    *client.{{ .Model }}
+}
+
+// Load {{ .Model }}
+func (m *{{ .Model }}) Load(q godb.Queryer) porterr.IError {
+    return gomodel.Load(q, m.{{ .Model }})
+}
+
+// Save {{ .Model }}
+func (m *{{ .Model }}) Save(q godb.Queryer) porterr.IError {
+    if m.{{ .Model }} != nil {
+        e := porterr.ValidateStruct(m.{{ .Model }})
+        if e != nil {
+            return e
+        }
+    }
+    return gomodel.Save(q, m.{{ .Model }})
+}
+
+// Delete {{ .Model }}
+func (m *{{ .Model }}) Delete(q godb.Queryer) porterr.IError {
+    return gomodel.Delete(q, m.{{ .Model }})
+}
+
+// Init {{ .Model }}
+func New{{ .Model }}() *{{ .Model }} {
+    return &{{ .Model }}{ {{ .Model }}: client.New{{ .Model }}()}
+}

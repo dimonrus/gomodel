@@ -488,6 +488,13 @@ func MakeModel(db godb.Queryer, dir string, schema string, table string, templat
 			break
 		}
 	}
+	packageNames := strings.Split(dir, string(os.PathSeparator))
+	var packageName string
+	if len(packageNames) > 0 {
+		packageName = packageNames[len(packageNames)-1]
+	} else {
+		packageName = dir
+	}
 
 	// Create file
 	file, path, err := CreateModelFile(schema, table, dir)
@@ -497,6 +504,7 @@ func MakeModel(db godb.Queryer, dir string, schema string, table string, templat
 
 	// Parse template to file
 	err = tmpl.Execute(file, struct {
+		Package          string
 		Model            string
 		Table            string
 		TableDescription string
@@ -504,6 +512,7 @@ func MakeModel(db godb.Queryer, dir string, schema string, table string, templat
 		HasSequence      bool
 		Imports          []string
 	}{
+		Package:          packageName,
 		Model:            modelName,
 		Table:            table,
 		TableDescription: tableDescription,
