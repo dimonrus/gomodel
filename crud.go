@@ -15,7 +15,7 @@ import (
 var CrudTemplate string
 
 // GenerateCrud generate model in client pack and generate crud in core
-func GenerateCrud(crudPath, clientPath string, schema, table, tmpl string, q godb.Queryer) error {
+func GenerateCrud(crudPath, clientPath, project string, schema, table, tmpl string, q godb.Queryer) error {
 	err := MakeModel(q, clientPath, schema, table, tmpl, DefaultSystemColumnsSoft)
 	if err != nil {
 		return err
@@ -57,7 +57,7 @@ func GenerateCrud(crudPath, clientPath string, schema, table, tmpl string, q god
 		`"github.com/dimonrus/gomodel"`,
 		`"github.com/dimonrus/porterr"`,
 		`"github.com/dimonrus/godb/v2"`,
-		fmt.Sprintf(`"%s"`, clientPath),
+		fmt.Sprintf(`"%s/%s"`, project, clientPath),
 	}
 
 	// Parse template to file
