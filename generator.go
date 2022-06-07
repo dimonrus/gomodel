@@ -385,6 +385,15 @@ func getHelperFunc(systemColumns SystemColumns) template.FuncMap {
 			}
 			return modelType
 		},
+		"parseIdentifier": func(modelType string) string {
+			switch modelType {
+			case "int64", "int32", "int":
+				return "ParseInt"
+			case "uint", "uint32", "uint64":
+				return "ParseUint"
+			}
+			return ""
+		},
 	}
 }
 

@@ -1,0 +1,17 @@
+package {{ .Package }}
+
+import (
+{{ range $key, $import := .Imports }}{{ $import }}
+{{ end }}
+)
+{{ $index := 0 }} {{ $model := .Model }}
+func Read{{ .Model }}(w http.ResponseWriter, r *http.Request) { {{ range $key, $column := .Columns }}{{ if $column.IsPrimaryKey }}
+    {{ icameled $column.Name }}, _ = strconv.{{ parseIdentifier $column.ModelType}}(mux.Vars(r)["id"], 10, 64) {{ end }}{{ end }}
+    {{ icameled .Model }} := core.New{{ $model }}().SetPrimary({{ range $key, $column := .Columns }}{{ if $column.IsPrimaryKey }}{{ if $index }}, {{ end }}{{ $index = inc $index }} {{ icameled $column.Name }} {{ end }}{{ end }})
+    e := {{ icameled .Model }}.Load(base.App.GetDB())
+    if e != nil {
+        gorest.Send(w, gorest.NewErrorJsonResponse(e))
+        return
+    }
+    gorest.Send(w, gorest.NewOkJsonResponse("Read {{ .Model }}", {{ icameled .Model }}.{{ $model }}, nil))
+}

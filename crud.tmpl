@@ -5,9 +5,16 @@ import (
 {{ end }}
 )
 
-// Define wrapper for db model
+// {{ .Model }} Define wrapper for {{ .Model }} model
 type {{ .Model }} struct {
     *client.{{ .Model }}
+}
+
+{{ $index := 0 }} {{ $model := .Model}}
+// SetPrimary {{ .Model }} set primary keys
+func (m *{{ .Model }}) SetPrimary({{ range $key, $column := .Columns }}{{ if $column.IsPrimaryKey }}{{ if $index }}, {{ end }}{{ $index = inc $index }} {{ icameled $column.Name }} {{ $column.ModelType }} {{ end }}{{ end }}) *{{ .Model }} { {{ range $key, $column := .Columns }}{{ if $column.IsPrimaryKey }}
+    m.{{ $model }}.{{ $column.ModelName }} = &{{ icameled $column.Name }}{{ end }}{{ end }}
+    return m
 }
 
 // Load {{ .Model }}
@@ -31,7 +38,7 @@ func (m *{{ .Model }}) Delete(q godb.Queryer) porterr.IError {
     return gomodel.Delete(q, m.{{ .Model }})
 }
 
-// Init {{ .Model }}
+// New{{ .Model }} Init {{ .Model }}
 func New{{ .Model }}() *{{ .Model }} {
     return &{{ .Model }}{ {{ .Model }}: client.New{{ .Model }}()}
 }
