@@ -305,7 +305,6 @@ func (c CRUDGenerator) MakeAPICreate(q godb.Queryer, schema, table, version stri
 
 	var imports = []string{
 		`"net/http"`,
-		`"strconv"`,
 		`"github.com/gorilla/mux"`,
 		`"github.com/dimonrus/gorest"`,
 		fmt.Sprintf(`"%s/app/base"`, c.ProjectPath),
