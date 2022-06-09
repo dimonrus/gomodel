@@ -144,7 +144,7 @@ func (c CRUDGenerator) MakeAPIRead(q godb.Queryer, schema, table, version string
 		`"github.com/gorilla/mux"`,
 		`"github.com/dimonrus/gorest"`,
 		fmt.Sprintf(`"%s/app/base"`, c.ProjectPath),
-		fmt.Sprintf(`"%s/%s"`, c.ProjectPath, "core"),
+		fmt.Sprintf(`"%s/%s"`, c.ProjectPath, c.CRUDPath),
 	}
 
 	// Parse template to file
@@ -199,7 +199,7 @@ func (c CRUDGenerator) MakeAPIDelete(q godb.Queryer, schema, table, version stri
 		`"github.com/gorilla/mux"`,
 		`"github.com/dimonrus/gorest"`,
 		fmt.Sprintf(`"%s/app/base"`, c.ProjectPath),
-		fmt.Sprintf(`"%s/%s"`, c.ProjectPath, "core"),
+		fmt.Sprintf(`"%s/%s"`, c.ProjectPath, c.CRUDPath),
 	}
 
 	// Parse template to file
@@ -254,7 +254,7 @@ func (c CRUDGenerator) MakeAPIUpdate(q godb.Queryer, schema, table, version stri
 		`"github.com/gorilla/mux"`,
 		`"github.com/dimonrus/gorest"`,
 		fmt.Sprintf(`"%s/app/base"`, c.ProjectPath),
-		fmt.Sprintf(`"%s/%s"`, c.ProjectPath, "core"),
+		fmt.Sprintf(`"%s/%s"`, c.ProjectPath, c.CRUDPath),
 	}
 
 	// Parse template to file
@@ -305,10 +305,9 @@ func (c CRUDGenerator) MakeAPICreate(q godb.Queryer, schema, table, version stri
 
 	var imports = []string{
 		`"net/http"`,
-		`"github.com/gorilla/mux"`,
 		`"github.com/dimonrus/gorest"`,
 		fmt.Sprintf(`"%s/app/base"`, c.ProjectPath),
-		fmt.Sprintf(`"%s/%s"`, c.ProjectPath, "core"),
+		fmt.Sprintf(`"%s/%s"`, c.ProjectPath, c.CRUDPath),
 	}
 
 	// Parse template to file
