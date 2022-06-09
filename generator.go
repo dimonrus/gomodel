@@ -385,16 +385,65 @@ func getHelperFunc(systemColumns SystemColumns) template.FuncMap {
 			}
 			return modelType
 		},
-		"parseIdentifier": func(modelType string) string {
+		"parseIdentifier": func(name string, modelType string) string {
+			var result string
 			switch modelType {
-			case "int64", "int32", "int":
-				return "ParseInt"
-			case "uint", "uint32", "uint64":
-				return "ParseUint"
+			case "string", "[]byte":
+				result = fmt.Sprintf(`%s := mux.Vars(r)["%s"]`, name, gohelp.ToUnderscore(name))
+			case "int", "int64", "int32":
+				result = fmt.Sprintf(`%s, _ := strconv.ParseInt(mux.Vars(r)["%s"], 10, 64)`, name, gohelp.ToUnderscore(name))
+			case "uint", "uint64", "uint32":
+				result = fmt.Sprintf(`%s, _ := strconv.ParseUint(mux.Vars(r)["%s"], 10, 64)`, name, gohelp.ToUnderscore(name))
 			}
-			return ""
+			return result
+		},
+		"prepareIdentifierParam": func(name string, modelType string) string {
+			var result string
+			switch modelType {
+			case "string", "[]byte":
+				result = fmt.Sprintf(`{%s}`, gohelp.ToUnderscore(name))
+			case "int", "int64", "int32", "uint", "uint64", "uint32":
+				result = fmt.Sprintf(`{%s:^[0-9]+$}`, gohelp.ToUnderscore(name))
+			}
+			return result
+		},
+		"castToIdentifier": func(name string, modelType string) string {
+			var result string
+			switch modelType {
+			case "string", "[]byte", "uint64", "int64":
+				result = name
+			case "int":
+				result = fmt.Sprintf("int(%s)", name)
+			case "int32":
+				result = fmt.Sprintf("int32(%s)", name)
+			case "uint":
+				result = fmt.Sprintf("uint(%s)", name)
+			case "uint32":
+				result = fmt.Sprintf("uint32(%s)", name)
+			}
+			return result
 		},
 	}
+}
+
+// CreateFile Create File
+func CreateFile(name, path string) (*os.File, string, error) {
+	var filePath string
+	if path != "" {
+		folderPath := fmt.Sprintf(path)
+		err := os.MkdirAll(folderPath, os.ModePerm)
+		if err != nil {
+			return nil, "", err
+		}
+		filePath = fmt.Sprintf("%s/%s.go", folderPath, name)
+	} else {
+		filePath = fmt.Sprintf("%s.go", name)
+	}
+	f, err := os.Create(filePath)
+	if err != nil {
+		return nil, "", err
+	}
+	return f, filePath, nil
 }
 
 // Create file in os
@@ -403,24 +452,7 @@ func CreateModelFile(schema string, table string, path string) (*os.File, string
 	if schema != "public" {
 		fileName = fmt.Sprintf("%s_%s", schema, table)
 	}
-	var filePath string
-	if path != "" {
-		folderPath := fmt.Sprintf(path)
-		err := os.MkdirAll(folderPath, os.ModePerm)
-		if err != nil {
-			return nil, "", err
-		}
-		filePath = fmt.Sprintf("%s/%s.go", folderPath, fileName)
-	} else {
-		filePath = fmt.Sprintf("%s.go", fileName)
-	}
-
-	f, err := os.Create(filePath)
-	if err != nil {
-		return nil, "", err
-	}
-
-	return f, filePath, nil
+	return CreateFile(fileName, path)
 }
 
 // Prepare model name

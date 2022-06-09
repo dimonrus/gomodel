@@ -22,7 +22,8 @@ func TestGenerateCrud(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = GenerateCrud("core", "client", "public", "login", "", db)
+	crud := NewCRUDGenerator("core", "client", "io/web/api/", "github.com/dimonrus/gomodel")
+	err = crud.Generate(db, "public", "login", "v1")
 	if err != nil {
 		t.Fatal(err)
 	}

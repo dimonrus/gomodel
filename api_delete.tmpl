@@ -5,13 +5,13 @@ import (
 {{ end }}
 )
 {{ $index := 0 }} {{ $model := .Model }}
-func Read{{ .Model }}(w http.ResponseWriter, r *http.Request) { {{ range $key, $column := .Columns }}{{ if $column.IsPrimaryKey }}
+func Delete{{ .Model }}(w http.ResponseWriter, r *http.Request) { {{ range $key, $column := .Columns }}{{ if $column.IsPrimaryKey }}
     {{ parseIdentifier $column.Name $column.ModelType}}{{ end }}{{ end }}
     {{ icameled .Model }} := core.New{{ $model }}().SetPrimary({{ range $key, $column := .Columns }}{{ if $column.IsPrimaryKey }}{{ if $index }}, {{ end }}{{ $index = inc $index }} {{ castToIdentifier $column.Name $column.ModelType }} {{ end }}{{ end }})
-    e := {{ icameled .Model }}.Load(base.App.GetDB())
+    e := {{ icameled .Model }}.Delete(base.App.GetDB())
     if e != nil {
         gorest.Send(w, gorest.NewErrorJsonResponse(e))
         return
     }
-    gorest.Send(w, gorest.NewOkJsonResponse("Read {{ .Model }}", {{ icameled .Model }}, nil))
+    gorest.Send(w, gorest.NewOkJsonResponse("{{ .Model }} successfully deleted", nil, nil))
 }

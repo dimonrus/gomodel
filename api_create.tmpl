@@ -1,0 +1,23 @@
+package {{ .Package }}
+
+import (
+{{ range $key, $import := .Imports }}{{ $import }}
+{{ end }}
+)
+{{ $index := 0 }} {{ $model := .Model }}
+func Create{{ .Model }}(w http.ResponseWriter, r *http.Request) {
+    {{ icameled .Model }} := core.New{{ $model }}()
+    e := gorest.ParseJsonBody({{ icameled .Model }}.{{ .Model}}, r.Body)
+    if e != nil {
+        gorest.Send(w, gorest.NewErrorJsonResponse(e))
+        return
+    }
+    // Reset primary keys
+    {{ range $key, $column := .Columns }}{{ if $column.IsPrimaryKey }}m.{{ $column.ModelName }} = nil{{ end }}{{ end }}
+    e = {{ icameled .Model }}.Save(base.App.GetDb())
+    if e != nil {
+        gorest.Send(w, gorest.NewErrorJsonResponse(e))
+        return
+    }
+    gorest.Send(w, gorest.NewOkJsonResponse("Create {{ .Model }}", {{ icameled .Model }}, nil))
+}
