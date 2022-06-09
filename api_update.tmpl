@@ -13,12 +13,12 @@ func Update{{ .Model }}(w http.ResponseWriter, r *http.Request) { {{ range $key,
         gorest.Send(w, gorest.NewErrorJsonResponse(e))
         return
     }
-    e = gorest.ParseJsonBody({{ icameled .Model }}.{{ .Model}}, r.Body)
+    e = gorest.ParseJsonBody(r.Body, {{ icameled .Model }}.{{ .Model}})
     if e != nil {
         gorest.Send(w, gorest.NewErrorJsonResponse(e))
         return
     }
-    e = {{ icameled .Model }}.Save(base.App.GetDb())
+    e = {{ icameled .Model }}.Save(base.App.GetDB())
     if e != nil {
         gorest.Send(w, gorest.NewErrorJsonResponse(e))
         return

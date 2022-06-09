@@ -7,14 +7,14 @@ import (
 {{ $index := 0 }} {{ $model := .Model }}
 func Create{{ .Model }}(w http.ResponseWriter, r *http.Request) {
     {{ icameled .Model }} := core.New{{ $model }}()
-    e := gorest.ParseJsonBody({{ icameled .Model }}.{{ .Model}}, r.Body)
+    e := gorest.ParseJsonBody(r.Body, {{ icameled .Model }}.{{ .Model}})
     if e != nil {
         gorest.Send(w, gorest.NewErrorJsonResponse(e))
         return
     }
     // Reset primary keys
-    {{ range $key, $column := .Columns }}{{ if $column.IsPrimaryKey }}m.{{ $column.ModelName }} = nil{{ end }}{{ end }}
-    e = {{ icameled .Model }}.Save(base.App.GetDb())
+    {{ range $key, $column := .Columns }}{{ if $column.IsPrimaryKey }}{{ icameled .Model }}.{{ .Model}}.{{ $column.ModelName }} = nil{{ end }}{{ end }}
+    e = {{ icameled .Model }}.Save(base.App.GetDB())
     if e != nil {
         gorest.Send(w, gorest.NewErrorJsonResponse(e))
         return
