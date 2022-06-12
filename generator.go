@@ -367,8 +367,17 @@ func getHelperFunc(systemColumns SystemColumns) template.FuncMap {
 			return gohelp.ExistsInArray(column.Name, []string{systemColumns.Created, systemColumns.Updated, systemColumns.Deleted}) ||
 				(column.IsPrimaryKey && column.Sequence != nil)
 		},
+		"isSearchColumn": func(column Column) bool {
+			return !(column.IsDeleted || column.IsCreated || column.IsUpdated || column.Import == `"time"`)
+		},
 		"cameled": func(name string) string {
 			return gohelp.ToCamelCase(name, true)
+		},
+		"unref": func(modelType string) string {
+			if modelType[0] == '*' {
+				return modelType[1:]
+			}
+			return modelType
 		},
 		"icameled": func(name string) string {
 			return gohelp.ToCamelCase(name, false)
@@ -437,7 +446,7 @@ func multipleValueName(name string) string {
 	if name[len(name)-1] != 's' {
 		return name + "s"
 	}
-	return name + "es"
+	return name
 }
 
 // CreateFile Create File

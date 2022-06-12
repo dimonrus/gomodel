@@ -6,14 +6,14 @@ import (
 )
 
 // {{ .Model }}SearchForm search form for {{ .Model }} entity
-type {{ .Model }}SearchForm struct { {{ range $key, $column := .Columns }}{{ if or (not (system $column)) $column.IsPrimaryKey }}
+type {{ .Model }}SearchForm struct { {{ range $key, $column := .Columns }}{{ if isSearchColumn $column }}
     {{ if $column.Description }}// {{ $column.Description }}{{ end }}
-    {{ searchField $column.ModelName }} {{ if or $column.IsArray $column.IsByteArray }} {{ $column.ModelType }} {{ else }} []{{ $column.ModelType }} {{ end }} {{ jsonTag $column.ModelName }} {{ end }}{{ end }}
+    {{ searchField $column.ModelName }} {{ if or $column.IsArray $column.IsByteArray }} {{ $column.ModelType }} {{ else }} []{{ unref $column.ModelType }} {{ end }} {{ jsonTag $column.ModelName }} {{ end }}{{ end }}
 }
 
 // PrepareCondition prepare condition for search
 func (f {{ .Model }}SearchForm) PrepareCondition() *gosql.Condition {
-    cond := gosql.NewSqlCondition(gosql.ConditionOperatorAnd){{ range $key, $column := .Columns }}{{ if or (not (system $column)) $column.IsPrimaryKey }}
+    cond := gosql.NewSqlCondition(gosql.ConditionOperatorAnd){{ range $key, $column := .Columns }}{{ if isSearchColumn $column }}
     if len(f.{{ searchField $column.ModelName }}) > 0 {
         cond.AddExpression("{{ $column.Name }} = ANY(?)", pq.Array(f.{{ searchField $column.ModelName }}))
     }{{ end }}{{ end }}

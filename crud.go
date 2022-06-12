@@ -431,9 +431,9 @@ func (c CRUDGenerator) MakeAPISearch(q godb.Queryer, schema, table, version stri
 
 	var imports = []string{
 		`"net/http"`,
-		`"github.com/gorilla/mux"`,
 		`"github.com/dimonrus/gorest"`,
 		fmt.Sprintf(`"%s/app/base"`, c.ProjectPath),
+		fmt.Sprintf(`"%s/%s"`, c.ProjectPath, c.ClientPath),
 	}
 
 	// Parse template to file
