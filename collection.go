@@ -22,6 +22,9 @@ type Collection[T any] struct {
 
 // Items Get all items
 func (c *Collection[T]) Items() []*T {
+	if c.items == nil {
+		return make([]*T, 0)
+	}
 	return c.items
 }
 

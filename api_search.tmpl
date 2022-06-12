@@ -1,0 +1,21 @@
+package {{ .Package }}
+
+import (
+{{ range $key, $import := .Imports }}{{ $import }}
+{{ end }}
+)
+func Search{{ .Model }}(w http.ResponseWriter, r *http.Request) {
+    request := client.{{ .Model }}SearchForm{}
+    e := gorest.ParseJsonBody(r.Body, &request)
+    if e != nil {
+        gorest.Send(w, gorest.NewErrorJsonResponse(e))
+        return
+    }
+    // Search {{ searchField .Model }}
+    items, meta, e := request.Search(base.App.GetDB())
+    if e != nil {
+        gorest.Send(w, gorest.NewErrorJsonResponse(e))
+        return
+    }
+    gorest.Send(w, gorest.NewOkJsonResponse("List of {{ searchField .Model }}", items, meta))
+}

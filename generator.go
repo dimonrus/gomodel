@@ -104,6 +104,9 @@ func (c Columns) GetImports() []string {
 	var imports []string
 
 	for i := range c {
+		if c[i].Import == "" {
+			continue
+		}
 		imports = gohelp.AppendUnique(imports, c[i].Import)
 	}
 
@@ -423,7 +426,18 @@ func getHelperFunc(systemColumns SystemColumns) template.FuncMap {
 			}
 			return result
 		},
+		"searchField": multipleValueName,
+		"jsonTag": func(name string) string {
+			return fmt.Sprintf(`%cjson:"%s"%c`, '`', gohelp.ToCamelCase(multipleValueName(name), false), '`')
+		},
 	}
+}
+
+func multipleValueName(name string) string {
+	if name[len(name)-1] != 's' {
+		return name + "s"
+	}
+	return name + "es"
 }
 
 // CreateFile Create File

@@ -26,6 +26,12 @@ var ApiCreateTemplate string
 //go:embed api_delete.tmpl
 var ApiDeleteTemplate string
 
+//go:embed api_search.tmpl
+var ApiSearchTemplate string
+
+//go:embed search_form.tmpl
+var SearchFormTemplate string
+
 // CRUDGenerator struct for crud generation
 type CRUDGenerator struct {
 	// Path for crud folder
@@ -90,6 +96,73 @@ func (c CRUDGenerator) MakeCoreCrud(q godb.Queryer, schema, table string) error 
 		`"github.com/dimonrus/porterr"`,
 		`"github.com/dimonrus/godb/v2"`,
 		fmt.Sprintf(`"%s/%s"`, c.ProjectPath, c.ClientPath),
+	}
+
+	// Parse template to file
+	err = tmp.Execute(file, struct {
+		Package string
+		Model   string
+		Imports []string
+		Columns Columns
+	}{
+		Package: packageName,
+		Model:   getModelName(schema, table),
+		Imports: imports,
+		Columns: *columns,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	// Format code
+	cmd := exec.Command("go", "fmt", path)
+	return cmd.Run()
+}
+
+// MakeSearchForm generate search form
+func (c CRUDGenerator) MakeSearchForm(q godb.Queryer, schema, table string) error {
+	// New Template
+	tmp := template.New("search_form").Funcs(getHelperFunc(DefaultSystemColumns))
+	// init template
+	tmlString := SearchFormTemplate
+
+	// Get package name
+	packageNames := strings.Split(c.ClientPath, string(os.PathSeparator))
+	var packageName string
+	if len(packageNames) > 0 {
+		packageName = packageNames[len(packageNames)-1]
+	} else {
+		packageName = c.ClientPath
+	}
+
+	// Columns
+	columns, err := GetTableColumns(q, schema, table, DefaultSystemColumns, getDictionaryItems(q))
+	if err != nil {
+		return err
+	}
+	if columns == nil || len(*columns) == 0 {
+		return errors.New("No table found or no columns in table ")
+	}
+
+	tmp, err = tmp.Parse(tmlString)
+	if err != nil {
+		return err
+	}
+
+	file, path, err := CreateModelFile("public", table+"_search", c.ClientPath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	// crud imports
+	var imports = []string{
+		`"github.com/dimonrus/godb/v2"`,
+		`"github.com/dimonrus/gosql"`,
+		`"github.com/dimonrus/gorest"`,
+		`"github.com/dimonrus/porterr"`,
+		`"github.com/lib/pq"`,
 	}
 
 	// Parse template to file
@@ -332,6 +405,59 @@ func (c CRUDGenerator) MakeAPICreate(q godb.Queryer, schema, table, version stri
 	return cmd.Run()
 }
 
+// MakeAPISearch generate qpi search
+func (c CRUDGenerator) MakeAPISearch(q godb.Queryer, schema, table, version string) error {
+	// New Template
+	tmp := template.New("api_search").Funcs(getHelperFunc(DefaultSystemColumns))
+
+	tmlString := ApiSearchTemplate
+
+	// Columns
+	columns, err := GetTableColumns(q, schema, table, DefaultSystemColumns, getDictionaryItems(q))
+	if err != nil {
+		return err
+	}
+	if columns == nil || len(*columns) == 0 {
+		return errors.New("No table found or no columns in table ")
+	}
+
+	tmp = template.Must(tmp.Parse(tmlString))
+
+	file, path, err := CreateFile("search", c.APIPath+string(os.PathSeparator)+table+string(os.PathSeparator)+version)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	var imports = []string{
+		`"net/http"`,
+		`"github.com/gorilla/mux"`,
+		`"github.com/dimonrus/gorest"`,
+		fmt.Sprintf(`"%s/app/base"`, c.ProjectPath),
+	}
+
+	// Parse template to file
+	err = tmp.Execute(file, struct {
+		Package string
+		Model   string
+		Imports []string
+		Columns Columns
+	}{
+		Package: version,
+		Model:   getModelName(schema, table),
+		Imports: imports,
+		Columns: *columns,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	// Format code
+	cmd := exec.Command("go", "fmt", path)
+	return cmd.Run()
+}
+
 // Generate generate crud, client, api
 func (c CRUDGenerator) Generate(q godb.Queryer, schema, table, version string) error {
 	modelTemplate := DefaultModelTemplate
@@ -356,6 +482,14 @@ func (c CRUDGenerator) Generate(q godb.Queryer, schema, table, version string) e
 		return err
 	}
 	err = c.MakeAPICreate(q, schema, table, version)
+	if err != nil {
+		return err
+	}
+	err = c.MakeSearchForm(q, schema, table)
+	if err != nil {
+		return err
+	}
+	err = c.MakeAPISearch(q, schema, table, version)
 	if err != nil {
 		return err
 	}

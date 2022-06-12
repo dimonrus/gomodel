@@ -1,0 +1,32 @@
+package {{ .Package }}
+
+import (
+{{ range $key, $import := .Imports }}{{ $import }}
+{{ end }}
+)
+
+// {{ .Model }}SearchForm search form for {{ .Model }} entity
+type {{ .Model }}SearchForm struct { {{ range $key, $column := .Columns }}{{ if or (not (system $column)) $column.IsPrimaryKey }}
+    {{ if $column.Description }}// {{ $column.Description }}{{ end }}
+    {{ searchField $column.ModelName }} {{ if or $column.IsArray $column.IsByteArray }} {{ $column.ModelType }} {{ else }} []{{ $column.ModelType }} {{ end }} {{ jsonTag $column.ModelName }} {{ end }}{{ end }}
+}
+
+// PrepareCondition prepare condition for search
+func (f {{ .Model }}SearchForm) PrepareCondition() *gosql.Condition {
+    cond := gosql.NewSqlCondition(gosql.ConditionOperatorAnd){{ range $key, $column := .Columns }}{{ if or (not (system $column)) $column.IsPrimaryKey }}
+    if len(f.{{ searchField $column.ModelName }}) > 0 {
+        cond.AddExpression("{{ $column.Name }} = ANY(?)", pq.Array(f.{{ searchField $column.ModelName }}))
+    }{{ end }}{{ end }}
+    return cond
+}
+
+// Search items according to form
+func (f {{ .Model }}SearchForm) Search(q godb.Queryer) (items []*{{ .Model }}, meta gorest.Meta, e porterr.IError) {
+    collection := New{{ .Model }}Collection()
+    collection.Where().Replace(f.PrepareCondition())
+    e = collection.Load(q)
+    items = collection.Items()
+    meta.Total = collection.Count()
+    return
+}
+
