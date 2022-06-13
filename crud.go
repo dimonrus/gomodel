@@ -601,9 +601,11 @@ func (c CRUDGenerator) Generate(q godb.Queryer, schema, table, version string, n
 			return err
 		}
 	}
-	err = c.MakeAPIRoute(q, schema, table, version, num)
-	if err != nil {
-		return err
+	if num > 0 {
+		err = c.MakeAPIRoute(q, schema, table, version, num)
+		if err != nil {
+			return err
+		}
 	}
 	return err
 }
