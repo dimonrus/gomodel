@@ -94,6 +94,7 @@ func (c CRUDGenerator) MakeCoreCrud(q godb.Queryer, schema, table string) error 
 	var imports = []string{
 		`"github.com/dimonrus/gomodel"`,
 		`"github.com/dimonrus/porterr"`,
+		`"github.com/dimonrus/gorest"`,
 		`"github.com/dimonrus/godb/v2"`,
 		fmt.Sprintf(`"%s/%s"`, c.ProjectPath, c.ClientPath),
 	}
@@ -113,6 +114,10 @@ func (c CRUDGenerator) MakeCoreCrud(q godb.Queryer, schema, table string) error 
 
 	if err != nil {
 		return err
+	}
+
+	if dbo, ok := q.(*godb.DBO); ok {
+		dbo.Logger.Printf("Core %s file created: %s", getModelName(schema, table), path)
 	}
 
 	// Format code
@@ -158,10 +163,7 @@ func (c CRUDGenerator) MakeSearchForm(q godb.Queryer, schema, table string) erro
 
 	// crud imports
 	var imports = []string{
-		`"github.com/dimonrus/godb/v2"`,
 		`"github.com/dimonrus/gosql"`,
-		`"github.com/dimonrus/gorest"`,
-		`"github.com/dimonrus/porterr"`,
 		`"github.com/lib/pq"`,
 	}
 
@@ -180,6 +182,10 @@ func (c CRUDGenerator) MakeSearchForm(q godb.Queryer, schema, table string) erro
 
 	if err != nil {
 		return err
+	}
+
+	if dbo, ok := q.(*godb.DBO); ok {
+		dbo.Logger.Printf("Client %s search file created: %s", getModelName(schema, table), path)
 	}
 
 	// Format code
@@ -237,6 +243,10 @@ func (c CRUDGenerator) MakeAPIRead(q godb.Queryer, schema, table, version string
 		return err
 	}
 
+	if dbo, ok := q.(*godb.DBO); ok {
+		dbo.Logger.Printf("API read %s file created: %s", getModelName(schema, table), path)
+	}
+
 	// Format code
 	cmd := exec.Command("go", "fmt", path)
 	return cmd.Run()
@@ -290,6 +300,10 @@ func (c CRUDGenerator) MakeAPIDelete(q godb.Queryer, schema, table, version stri
 
 	if err != nil {
 		return err
+	}
+
+	if dbo, ok := q.(*godb.DBO); ok {
+		dbo.Logger.Printf("API delete %s file created: %s", getModelName(schema, table), path)
 	}
 
 	// Format code
@@ -346,6 +360,9 @@ func (c CRUDGenerator) MakeAPIUpdate(q godb.Queryer, schema, table, version stri
 	if err != nil {
 		return err
 	}
+	if dbo, ok := q.(*godb.DBO); ok {
+		dbo.Logger.Printf("API update %s file created: %s", getModelName(schema, table), path)
+	}
 
 	// Format code
 	cmd := exec.Command("go", "fmt", path)
@@ -400,6 +417,10 @@ func (c CRUDGenerator) MakeAPICreate(q godb.Queryer, schema, table, version stri
 		return err
 	}
 
+	if dbo, ok := q.(*godb.DBO); ok {
+		dbo.Logger.Printf("API create %s file created: %s", getModelName(schema, table), path)
+	}
+
 	// Format code
 	cmd := exec.Command("go", "fmt", path)
 	return cmd.Run()
@@ -434,6 +455,7 @@ func (c CRUDGenerator) MakeAPISearch(q godb.Queryer, schema, table, version stri
 		`"github.com/dimonrus/gorest"`,
 		fmt.Sprintf(`"%s/app/base"`, c.ProjectPath),
 		fmt.Sprintf(`"%s/%s"`, c.ProjectPath, c.ClientPath),
+		fmt.Sprintf(`"%s/%s"`, c.ProjectPath, c.CRUDPath),
 	}
 
 	// Parse template to file
@@ -451,6 +473,10 @@ func (c CRUDGenerator) MakeAPISearch(q godb.Queryer, schema, table, version stri
 
 	if err != nil {
 		return err
+	}
+
+	if dbo, ok := q.(*godb.DBO); ok {
+		dbo.Logger.Printf("API search %s file created: %s", getModelName(schema, table), path)
 	}
 
 	// Format code

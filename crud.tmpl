@@ -42,3 +42,18 @@ func (m *{{ .Model }}) Delete(q godb.Queryer) porterr.IError {
 func New{{ .Model }}() *{{ .Model }} {
     return &{{ .Model }}{ {{ .Model }}: client.New{{ .Model }}()}
 }
+
+// {{ .Model }}Search search items according to form
+func {{ .Model }}Search(q godb.Queryer, form client.{{ .Model }}SearchForm) (items []*client.{{ .Model }}, meta gorest.Meta, e porterr.IError) {
+    collection := client.New{{ .Model }}Collection()
+    condition := form.PrepareCondition()
+    if condition.IsEmpty() {
+        items = collection.Items()
+        return
+    }
+    collection.Where().Replace(condition)
+    e = collection.Load(q)
+    items = collection.Items()
+    meta.Total = collection.Count()
+    return
+}

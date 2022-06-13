@@ -12,7 +12,7 @@ func Search{{ .Model }}(w http.ResponseWriter, r *http.Request) {
         return
     }
     // Search {{ searchField .Model }}
-    items, meta, e := request.Search(base.App.GetDB())
+    items, meta, e := core.{{ .Model }}Search(base.App.GetDB(), request)
     if e != nil {
         gorest.Send(w, gorest.NewErrorJsonResponse(e))
         return

@@ -20,13 +20,3 @@ func (f {{ .Model }}SearchForm) PrepareCondition() *gosql.Condition {
     return cond
 }
 
-// Search items according to form
-func (f {{ .Model }}SearchForm) Search(q godb.Queryer) (items []*{{ .Model }}, meta gorest.Meta, e porterr.IError) {
-    collection := New{{ .Model }}Collection()
-    collection.Where().Replace(f.PrepareCondition())
-    e = collection.Load(q)
-    items = collection.Items()
-    meta.Total = collection.Count()
-    return
-}
-
