@@ -9,16 +9,16 @@ import (
 func Init(apiRoute *mux.Router, middleware ...mux.MiddlewareFunc) {
     // Route
     {{ .Model }}Route := apiRoute.PathPrefix("/{{ icameled .Model }}").Subrouter()
-    // Create
-    {{ .Model }}Route.HandleFunc("", Create{{ .Model }}).Methods(http.MethodPost)
-    // Update
-    {{ .Model }}Route.HandleFunc("/{id:[0-9]+}", Update{{ .Model }}).Methods(http.MethodPatch)
-    // Delete
-    {{ .Model }}Route.HandleFunc("/{id:[0-9]+}", Delete{{ .Model }}).Methods(http.MethodDelete)
-    // Read
-    {{ .Model }}Route.HandleFunc("/{id:[0-9]+}", Read{{ .Model }}).Methods(http.MethodGet)
-    // Search
-    {{ .Model }}Route.HandleFunc("/list", Search{{ .Model }}).Methods(http.MethodPost)
+    {{ if .Create }}// Create
+    {{ .Model }}Route.HandleFunc("", Create{{ .Model }}).Methods(http.MethodPost){{ end }}
+    {{ if .Read }}// Read
+    {{ .Model }}Route.HandleFunc("/{id:[0-9]+}", Read{{ .Model }}).Methods(http.MethodGet){{ end }}
+    {{ if .Update }}// Update
+    {{ .Model }}Route.HandleFunc("/{id:[0-9]+}", Update{{ .Model }}).Methods(http.MethodPatch){{ end }}
+    {{ if .Delete }}// Delete
+    {{ .Model }}Route.HandleFunc("/{id:[0-9]+}", Delete{{ .Model }}).Methods(http.MethodDelete){{ end }}
+    {{ if .Search }}// Search
+    {{ .Model }}Route.HandleFunc("/list", Search{{ .Model }}).Methods(http.MethodPost){{ end }}
     // Use middleware
     apiRoute.Use(middleware...)
 }

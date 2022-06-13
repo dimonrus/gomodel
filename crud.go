@@ -488,7 +488,7 @@ func (c CRUDGenerator) MakeAPISearch(q godb.Queryer, schema, table, version stri
 }
 
 // MakeAPIRoute generate qpi route
-func (c CRUDGenerator) MakeAPIRoute(q godb.Queryer, schema, table, version string) error {
+func (c CRUDGenerator) MakeAPIRoute(q godb.Queryer, schema, table, version string, num uint8) error {
 	// New Template
 	tmp := template.New("api_route").Funcs(getHelperFunc(DefaultSystemColumns))
 
@@ -522,11 +522,21 @@ func (c CRUDGenerator) MakeAPIRoute(q godb.Queryer, schema, table, version strin
 		Model   string
 		Imports []string
 		Columns Columns
+		Create  bool
+		Read    bool
+		Update  bool
+		Delete  bool
+		Search  bool
 	}{
 		Package: version,
 		Model:   getModelName(schema, table),
 		Imports: imports,
 		Columns: *columns,
+		Create:  num&1 == 1,
+		Read:    num&2 == 2,
+		Update:  num&4 == 4,
+		Delete:  num&8 == 8,
+		Search:  num&16 == 16,
 	})
 
 	if err != nil {
@@ -543,7 +553,11 @@ func (c CRUDGenerator) MakeAPIRoute(q godb.Queryer, schema, table, version strin
 }
 
 // Generate generate crud, client, api
-func (c CRUDGenerator) Generate(q godb.Queryer, schema, table, version string) error {
+// q - database connection
+// schema - db schema (table namespace)
+// table - name of table
+// num - crud scenario (1 - create, 2 - read, 4 - update, 8 - delete, 16 - list)
+func (c CRUDGenerator) Generate(q godb.Queryer, schema, table, version string, num uint8) error {
 	modelTemplate := DefaultModelTemplate
 	err := MakeModel(q, c.ClientPath, schema, table, modelTemplate, DefaultSystemColumnsSoft)
 	if err != nil {
@@ -553,31 +567,41 @@ func (c CRUDGenerator) Generate(q godb.Queryer, schema, table, version string) e
 	if err != nil {
 		return err
 	}
-	err = c.MakeAPIRead(q, schema, table, version)
-	if err != nil {
-		return err
+	if num&1 == 1 {
+		err = c.MakeAPICreate(q, schema, table, version)
+		if err != nil {
+			return err
+		}
 	}
-	err = c.MakeAPIUpdate(q, schema, table, version)
-	if err != nil {
-		return err
+	if num&2 == 2 {
+		err = c.MakeAPIRead(q, schema, table, version)
+		if err != nil {
+			return err
+		}
 	}
-	err = c.MakeAPIDelete(q, schema, table, version)
-	if err != nil {
-		return err
+	if num&4 == 4 {
+		err = c.MakeAPIUpdate(q, schema, table, version)
+		if err != nil {
+			return err
+		}
 	}
-	err = c.MakeAPICreate(q, schema, table, version)
-	if err != nil {
-		return err
+	if num&8 == 8 {
+		err = c.MakeAPIDelete(q, schema, table, version)
+		if err != nil {
+			return err
+		}
 	}
 	err = c.MakeSearchForm(q, schema, table)
 	if err != nil {
 		return err
 	}
-	err = c.MakeAPISearch(q, schema, table, version)
-	if err != nil {
-		return err
+	if num&16 == 16 {
+		err = c.MakeAPISearch(q, schema, table, version)
+		if err != nil {
+			return err
+		}
 	}
-	err = c.MakeAPIRoute(q, schema, table, version)
+	err = c.MakeAPIRoute(q, schema, table, version, num)
 	if err != nil {
 		return err
 	}
