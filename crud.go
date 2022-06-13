@@ -32,6 +32,9 @@ var ApiSearchTemplate string
 //go:embed search_form.tmpl
 var SearchFormTemplate string
 
+//go:embed api_route.tmpl
+var ApiRouteTemplate string
+
 // CRUDGenerator struct for crud generation
 type CRUDGenerator struct {
 	// Path for crud folder
@@ -484,6 +487,61 @@ func (c CRUDGenerator) MakeAPISearch(q godb.Queryer, schema, table, version stri
 	return cmd.Run()
 }
 
+// MakeAPIRoute generate qpi route
+func (c CRUDGenerator) MakeAPIRoute(q godb.Queryer, schema, table, version string) error {
+	// New Template
+	tmp := template.New("api_route").Funcs(getHelperFunc(DefaultSystemColumns))
+
+	tmlString := ApiRouteTemplate
+
+	// Columns
+	columns, err := GetTableColumns(q, schema, table, DefaultSystemColumns, getDictionaryItems(q))
+	if err != nil {
+		return err
+	}
+	if columns == nil || len(*columns) == 0 {
+		return errors.New("No table found or no columns in table ")
+	}
+
+	tmp = template.Must(tmp.Parse(tmlString))
+
+	file, path, err := CreateFile("route", c.APIPath+string(os.PathSeparator)+table+string(os.PathSeparator)+version)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	var imports = []string{
+		`"net/http"`,
+		`"github.com/gorilla/mux"`,
+	}
+
+	// Parse template to file
+	err = tmp.Execute(file, struct {
+		Package string
+		Model   string
+		Imports []string
+		Columns Columns
+	}{
+		Package: version,
+		Model:   getModelName(schema, table),
+		Imports: imports,
+		Columns: *columns,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	if dbo, ok := q.(*godb.DBO); ok {
+		dbo.Logger.Printf("API route %s file created: %s", getModelName(schema, table), path)
+	}
+
+	// Format code
+	cmd := exec.Command("go", "fmt", path)
+	return cmd.Run()
+}
+
 // Generate generate crud, client, api
 func (c CRUDGenerator) Generate(q godb.Queryer, schema, table, version string) error {
 	modelTemplate := DefaultModelTemplate
@@ -516,6 +574,10 @@ func (c CRUDGenerator) Generate(q godb.Queryer, schema, table, version string) e
 		return err
 	}
 	err = c.MakeAPISearch(q, schema, table, version)
+	if err != nil {
+		return err
+	}
+	err = c.MakeAPIRoute(q, schema, table, version)
 	if err != nil {
 		return err
 	}

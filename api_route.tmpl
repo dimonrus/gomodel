@@ -1,0 +1,24 @@
+package {{ .Package }}
+
+import (
+{{ range $key, $import := .Imports }}{{ $import }}
+{{ end }}
+)
+
+// {{ .Model }} sub route
+func Init(apiRoute *mux.Router, middleware ...mux.MiddlewareFunc) {
+    // Route
+    {{ .Model }}Route := apiRoute.PathPrefix("/{{ icameled .Model }}").Subrouter()
+    // Create
+    {{ .Model }}Route.HandleFunc("", Create{{ .Model }}).Methods(http.MethodPost)
+    // Update
+    {{ .Model }}Route.HandleFunc("/{id:[0-9]+}", Update{{ .Model }}).Methods(http.MethodPatch)
+    // Delete
+    {{ .Model }}Route.HandleFunc("/{id:[0-9]+}", Delete{{ .Model }}).Methods(http.MethodDelete)
+    // Read
+    {{ .Model }}Route.HandleFunc("/{id:[0-9]+}", Read{{ .Model }}).Methods(http.MethodGet)
+    // Search
+    {{ .Model }}Route.HandleFunc("/list", Search{{ .Model }}).Methods(http.MethodPost)
+    // Use middleware
+    apiRoute.Use(middleware...)
+}
