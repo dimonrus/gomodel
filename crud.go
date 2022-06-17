@@ -35,6 +35,9 @@ var SearchFormTemplate string
 //go:embed api_route.tmpl
 var ApiRouteTemplate string
 
+//go:embed api_client.tmpl
+var ApiClientTemplate string
+
 // CRUDGenerator struct for crud generation
 type CRUDGenerator struct {
 	// Path for crud folder
@@ -552,6 +555,53 @@ func (c CRUDGenerator) MakeAPIRoute(q godb.Queryer, schema, table, version strin
 	return cmd.Run()
 }
 
+// MakeAPIClient generate qpi search
+func (c CRUDGenerator) MakeAPIClient(q godb.Queryer) error {
+	// skip if file already exists
+	f, _ := os.Open(c.ClientPath + string(os.PathSeparator) + "api_client.go")
+	if f != nil {
+		return nil
+	}
+
+	// New Template
+	tmp := template.New("api_client").Funcs(getHelperFunc(DefaultSystemColumns))
+
+	tmlString := ApiClientTemplate
+
+	tmp = template.Must(tmp.Parse(tmlString))
+
+	file, path, err := CreateFile("api_client", c.ClientPath+string(os.PathSeparator))
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	var imports = []string{
+		`"github.com/dimonrus/goreq"`,
+	}
+
+	// Parse template to file
+	err = tmp.Execute(file, struct {
+		Package string
+		Imports []string
+	}{
+		Package: "client",
+		Imports: imports,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	if dbo, ok := q.(*godb.DBO); ok {
+		dbo.Logger.Printf("API client file created: %s", path)
+	}
+
+	// Format code
+	cmd := exec.Command("go", "fmt", path)
+	return cmd.Run()
+}
+
 // Generate generate crud, client, api
 // q - database connection
 // schema - db schema (table namespace)
@@ -603,6 +653,10 @@ func (c CRUDGenerator) Generate(q godb.Queryer, schema, table, version string, n
 	}
 	if num > 0 {
 		err = c.MakeAPIRoute(q, schema, table, version, num)
+		if err != nil {
+			return err
+		}
+		err = c.MakeAPIClient(q)
 		if err != nil {
 			return err
 		}

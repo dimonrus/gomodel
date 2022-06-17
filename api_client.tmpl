@@ -1,0 +1,25 @@
+package {{ .Package }}
+
+import (
+{{ range $key, $import := .Imports }}{{ $import }}
+{{ end }}
+)
+
+// Config Service configuration
+type Config struct {
+    // Service host
+    Host string `yaml:"host"`
+}
+
+// Service struct
+type Service struct {
+    // Http request
+    goreq.HttpRequest
+    // config
+    config Config
+}
+
+// NewService service constructor
+func NewService(req goreq.HttpRequest, config Config) Service {
+    return Service{HttpRequest: req, config: config}
+}
