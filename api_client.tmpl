@@ -63,8 +63,8 @@ func (s Service) Delete{{ .Model }}(id int64) (e porterr.IError) {
     return
 }{{ end }}
 {{ if .Search }}
-// List{{ .Model }} Get list of {{ icameled .Model }}s http method
-func (s Service) List{{ .Model }}(form {{ .Model }}SearchForm) (list {{ .Model }}s, meta gorest.Meta, e porterr.IError) {
+// List{{ .Model }} Get list of {{ searchField (icameled .Model) }} http method
+func (s Service) List{{ .Model }}(form {{ .Model }}SearchForm) (list {{ searchField .Model }}, meta gorest.Meta, e porterr.IError) {
     response := gorest.JsonResponse{Data: &list, Meta: &meta}
     _, err := s.EnsureJSON(http.MethodPost, "api/v1/{{ icameled .Model }}/list", nil, form, &response)
     if err != nil {

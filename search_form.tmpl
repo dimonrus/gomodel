@@ -5,8 +5,8 @@ import (
 {{ end }}
 )
 
-// {{ .Model }}s List of users
-type {{ .Model }}s []*{{ .Model }}
+// {{ searchField .Model }} List of {{ icameled (searchField .Model) }}
+type {{ searchField .Model }} []*{{ .Model }}
 
 // {{ .Model }}SearchForm search form for {{ .Model }} entity
 type {{ .Model }}SearchForm struct { {{ range $key, $column := .Columns }}{{ if isSearchColumn $column }}

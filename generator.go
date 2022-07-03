@@ -443,7 +443,9 @@ func getHelperFunc(systemColumns SystemColumns) template.FuncMap {
 }
 
 func multipleValueName(name string) string {
-	if name[len(name)-1] != 's' {
+	if name[len(name)-1] == 'y' {
+		return name[:len(name)-1] + "ies"
+	} else if name[len(name)-1] != 's' {
 		return name + "s"
 	}
 	return name
