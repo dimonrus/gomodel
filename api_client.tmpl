@@ -23,3 +23,52 @@ type Service struct {
 func NewService(req goreq.HttpRequest, config Config) Service {
     return Service{HttpRequest: req, config: config}
 }
+{{ if .Create }}
+// Create{{ .Model }} Create {{ icameled .Model }} http method
+func (s Service) Create{{ .Model }}(request {{ .Model }}) ({{ icameled .Model }} {{ .Model }}, e porterr.IError) {
+    response := gorest.JsonResponse{Data: &{{ icameled .Model }}}
+    _, err := s.EnsureJSON(http.MethodPost, "api/v1/{{ icameled .Model }}", nil, request, &response)
+    if err != nil {
+        e = err.(*porterr.PortError)
+    }
+    return
+}{{ end }}
+{{ if .Read }}
+// Read{{ .Model }} Read {{ icameled .Model }} http method
+func (s Service) Read{{ .Model }}(id int64) ({{ icameled .Model }} {{ .Model }}, e porterr.IError) {
+    response := gorest.JsonResponse{Data: &{{ icameled .Model }}}
+    _, err := s.EnsureJSON(http.MethodGet, fmt.Sprintf("api/v1/{{ icameled .Model }}/%v", id), nil, nil, &response)
+    if err != nil {
+        e = err.(*porterr.PortError)
+    }
+    return
+}{{ end }}
+{{ if .Update }}
+// Update{{ .Model }} Update user http method
+func (s Service) Update{{ .Model }}(id int64, request {{ .Model }}) ({{ icameled .Model }} {{ .Model }}, e porterr.IError) {
+    response := gorest.JsonResponse{Data: &{{ icameled .Model }}}
+    _, err := s.EnsureJSON(http.MethodPatch, fmt.Sprintf("api/v1/{{ icameled .Model }}/%v", id), nil, request, &response)
+    if err != nil {
+        e = err.(*porterr.PortError)
+    }
+    return
+}{{ end }}
+{{ if .Delete }}
+// Delete{{ .Model }} Delete {{ icameled .Model }} http method
+func (s Service) Delete{{ .Model }}(id int64) (e porterr.IError) {
+    _, err := s.EnsureJSON(http.MethodDelete, fmt.Sprintf("api/v1/{{ icameled .Model }}/%v", id), nil, nil, nil)
+    if err != nil {
+        e = err.(*porterr.PortError)
+    }
+    return
+}{{ end }}
+{{ if .Search }}
+// List{{ .Model }} Get list of {{ icameled .Model }}s http method
+func (s Service) List{{ .Model }}(form {{ .Model }}SearchForm) (list {{ .Model }}s, meta gorest.Meta, e porterr.IError) {
+    response := gorest.JsonResponse{Data: &list, Meta: &meta}
+    _, err := s.EnsureJSON(http.MethodPost, "api/v1/{{ icameled .Model }}/list", nil, form, &response)
+    if err != nil {
+        e = err.(*porterr.PortError)
+    }
+    return
+}{{ end }}

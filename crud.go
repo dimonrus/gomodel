@@ -38,6 +38,34 @@ var ApiRouteTemplate string
 //go:embed api_client.tmpl
 var ApiClientTemplate string
 
+// CrudNumber calculate for type of crud method
+type CrudNumber uint8
+
+// PossibleCrudMethods All possible crud methods
+type PossibleCrudMethods struct {
+	// Create method
+	Create bool
+	// Read method
+	Read bool
+	// Update method
+	Update bool
+	// Delete method
+	Delete bool
+	// Search method
+	Search bool
+}
+
+// GetPossibleMethods Calculate possible methods
+func (n CrudNumber) GetPossibleMethods() PossibleCrudMethods {
+	return PossibleCrudMethods{
+		Create: n&1 == 1,
+		Read:   n&2 == 2,
+		Update: n&4 == 4,
+		Delete: n&8 == 8,
+		Search: n&16 == 16,
+	}
+}
+
 // CRUDGenerator struct for crud generation
 type CRUDGenerator struct {
 	// Path for crud folder
@@ -491,7 +519,7 @@ func (c CRUDGenerator) MakeAPISearch(q godb.Queryer, schema, table, version stri
 }
 
 // MakeAPIRoute generate qpi route
-func (c CRUDGenerator) MakeAPIRoute(q godb.Queryer, schema, table, version string, num uint8) error {
+func (c CRUDGenerator) MakeAPIRoute(q godb.Queryer, schema, table, version string, num CrudNumber) error {
 	// New Template
 	tmp := template.New("api_route").Funcs(getHelperFunc(DefaultSystemColumns))
 
@@ -525,21 +553,13 @@ func (c CRUDGenerator) MakeAPIRoute(q godb.Queryer, schema, table, version strin
 		Model   string
 		Imports []string
 		Columns Columns
-		Create  bool
-		Read    bool
-		Update  bool
-		Delete  bool
-		Search  bool
+		PossibleCrudMethods
 	}{
-		Package: version,
-		Model:   getModelName(schema, table),
-		Imports: imports,
-		Columns: *columns,
-		Create:  num&1 == 1,
-		Read:    num&2 == 2,
-		Update:  num&4 == 4,
-		Delete:  num&8 == 8,
-		Search:  num&16 == 16,
+		Package:             version,
+		Model:               getModelName(schema, table),
+		Imports:             imports,
+		Columns:             *columns,
+		PossibleCrudMethods: num.GetPossibleMethods(),
 	})
 
 	if err != nil {
@@ -556,7 +576,7 @@ func (c CRUDGenerator) MakeAPIRoute(q godb.Queryer, schema, table, version strin
 }
 
 // MakeAPIClient generate qpi search
-func (c CRUDGenerator) MakeAPIClient(q godb.Queryer) error {
+func (c CRUDGenerator) MakeAPIClient(q godb.Queryer, schema, table, version string, num CrudNumber) error {
 	// skip if file already exists
 	f, _ := os.Open(c.ClientPath + string(os.PathSeparator) + "api_client.go")
 	if f != nil {
@@ -577,16 +597,24 @@ func (c CRUDGenerator) MakeAPIClient(q godb.Queryer) error {
 	defer file.Close()
 
 	var imports = []string{
+		`"fmt"`,
 		`"github.com/dimonrus/goreq"`,
+		`"github.com/dimonrus/gorest"`,
+		`"github.com/dimonrus/porterr"`,
+		`"net/http"`,
 	}
 
 	// Parse template to file
 	err = tmp.Execute(file, struct {
 		Package string
 		Imports []string
+		Model   string
+		PossibleCrudMethods
 	}{
-		Package: "client",
-		Imports: imports,
+		Package:             "client",
+		Imports:             imports,
+		Model:               getModelName(schema, table),
+		PossibleCrudMethods: num.GetPossibleMethods(),
 	})
 
 	if err != nil {
@@ -607,7 +635,7 @@ func (c CRUDGenerator) MakeAPIClient(q godb.Queryer) error {
 // schema - db schema (table namespace)
 // table - name of table
 // num - crud scenario (1 - create, 2 - read, 4 - update, 8 - delete, 16 - list)
-func (c CRUDGenerator) Generate(q godb.Queryer, schema, table, version string, num uint8) error {
+func (c CRUDGenerator) Generate(q godb.Queryer, schema, table, version string, num CrudNumber) error {
 	modelTemplate := DefaultModelTemplate
 	err := MakeModel(q, c.ClientPath, schema, table, modelTemplate, DefaultSystemColumnsSoft)
 	if err != nil {
@@ -656,7 +684,7 @@ func (c CRUDGenerator) Generate(q godb.Queryer, schema, table, version string, n
 		if err != nil {
 			return err
 		}
-		err = c.MakeAPIClient(q)
+		err = c.MakeAPIClient(q, schema, table, version, num)
 		if err != nil {
 			return err
 		}
