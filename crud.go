@@ -1,10 +1,14 @@
 package gomodel
 
 import (
+	"bufio"
+	"bytes"
 	_ "embed"
 	"errors"
 	"fmt"
 	"github.com/dimonrus/godb/v2"
+	"github.com/dimonrus/gohelp"
+	"io"
 	"os"
 	"os/exec"
 	"strings"
@@ -64,6 +68,27 @@ func (n CrudNumber) GetPossibleMethods() PossibleCrudMethods {
 		Delete: n&8 == 8,
 		Search: n&16 == 16,
 	}
+}
+
+// GetPossibleMethodsArray return list of crud method based on num
+func (n CrudNumber) GetPossibleMethodsArray() []string {
+	var result = make([]string, 0)
+	if n&1 == 1 {
+		result = append(result, "create")
+	}
+	if n&2 == 2 {
+		result = append(result, "read")
+	}
+	if n&4 == 4 {
+		result = append(result, "update")
+	}
+	if n&8 == 8 {
+		result = append(result, "delete")
+	}
+	if n&16 == 16 {
+		result = append(result, "list")
+	}
+	return result
 }
 
 // CRUDGenerator struct for crud generation
@@ -577,10 +602,16 @@ func (c CRUDGenerator) MakeAPIRoute(q godb.Queryer, schema, table, version strin
 
 // MakeAPIClient generate qpi search
 func (c CRUDGenerator) MakeAPIClient(q godb.Queryer, schema, table, version string, num CrudNumber) error {
-	// skip if file already exists
-	f, _ := os.Open(c.ClientPath + string(os.PathSeparator) + "api_client.go")
+	// update if file already exists
+	path := c.ClientPath + string(os.PathSeparator) + "api_client.go"
+	f, _ := os.Open(path)
 	if f != nil {
-		return nil
+		content, err := io.ReadAll(f)
+		if err != nil {
+			return err
+		}
+		_ = f.Close()
+		return c.UpdateAPIClient(path, content, schema, table, num)
 	}
 
 	// New Template
@@ -626,6 +657,124 @@ func (c CRUDGenerator) MakeAPIClient(q godb.Queryer, schema, table, version stri
 	}
 
 	// Format code
+	cmd := exec.Command("go", "fmt", path)
+	return cmd.Run()
+}
+
+func (c CRUDGenerator) UpdateAPIClient(path string, content []byte, schema, table string, num CrudNumber) error {
+	pcm := num.GetPossibleMethodsArray()
+	modelName := getModelName(schema, table)
+
+	createApi := `
+    // Create{{ .Model }} Create {{ icameled .Model }} http method
+	func (s Service) Create{{ .Model }}(request {{ .Model }}) ({{ icameled .Model }} {{ .Model }}, e porterr.IError) {
+		response := gorest.JsonResponse{Data: &{{ icameled .Model }}}
+		_, err := s.EnsureJSON(http.MethodPost, "api/v1/{{ icameled .Model }}", nil, request, &response)
+		if err != nil {
+			e = err.(*porterr.PortError)
+		}
+    	return
+	}`
+	readApi := `
+    // Read{{ .Model }} Read {{ icameled .Model }} http method
+	func (s Service) Read{{ .Model }}(id int64) ({{ icameled .Model }} {{ .Model }}, e porterr.IError) {
+		response := gorest.JsonResponse{Data: &{{ icameled .Model }}}
+		_, err := s.EnsureJSON(http.MethodGet, fmt.Sprintf("api/v1/{{ icameled .Model }}/%v", id), nil, nil, &response)
+		if err != nil {
+			e = err.(*porterr.PortError)
+		}
+		return
+	}`
+	updateApi := `
+   	// Update{{ .Model }} Update user http method
+	func (s Service) Update{{ .Model }}(id int64, request {{ .Model }}) ({{ icameled .Model }} {{ .Model }}, e porterr.IError) {
+		response := gorest.JsonResponse{Data: &{{ icameled .Model }}}
+		_, err := s.EnsureJSON(http.MethodPatch, fmt.Sprintf("api/v1/{{ icameled .Model }}/%v", id), nil, request, &response)
+		if err != nil {
+			e = err.(*porterr.PortError)
+		}
+		return
+	}`
+	deleteApi := `
+   	// Delete{{ .Model }} Delete {{ icameled .Model }} http method
+	func (s Service) Delete{{ .Model }}(id int64) (e porterr.IError) {
+		_, err := s.EnsureJSON(http.MethodDelete, fmt.Sprintf("api/v1/{{ icameled .Model }}/%v", id), nil, nil, nil)
+		if err != nil {
+			e = err.(*porterr.PortError)
+		}
+		return
+	}`
+	listApi := `
+	// List{{ .Model }} Get list of {{ searchField (icameled .Model) }} http method
+	func (s Service) List{{ .Model }}(form {{ .Model }}SearchForm) (list {{ searchField .Model }}, meta gorest.Meta, e porterr.IError) {
+		response := gorest.JsonResponse{Data: &list, Meta: &meta}
+		_, err := s.EnsureJSON(http.MethodPost, "api/v1/{{ icameled .Model }}/list", nil, form, &response)
+		if err != nil {
+			e = err.(*porterr.PortError)
+		}
+		return
+	}`
+	crudMap := map[string]string{"create": createApi, "read": readApi, "update": updateApi, "delete": deleteApi, "list": listApi}
+
+	// define all needed api
+	reader := bufio.NewReader(bytes.NewBuffer(content))
+	foundMethods := make([]string, 0)
+	for {
+		line, _, err := reader.ReadLine()
+		if err != nil {
+			if err == io.EOF {
+				break
+			} else {
+				return err
+			}
+		}
+		for _, s := range pcm {
+			methodName := gohelp.ToCamelCase(s+modelName, true) + "("
+			if strings.Contains(string(line), methodName) {
+				foundMethods = append(foundMethods, s)
+				break
+			}
+		}
+	}
+
+	var err error
+	var needleContent string
+	tml := template.New("needed_api").Funcs(getHelperFunc(DefaultSystemColumnsSoft))
+
+	for _, s := range pcm {
+		if !gohelp.ExistsInArray(s, foundMethods) {
+			needleContent += crudMap[s]
+		}
+	}
+
+	tml, err = tml.Parse(needleContent)
+	if err != nil {
+		return err
+	}
+	var data = make([]byte, 0)
+	buf := bytes.NewBuffer(data)
+	var str = bufio.NewWriter(buf)
+	err = tml.Execute(str, struct {
+		Model string
+	}{
+		Model: modelName,
+	})
+	if err != nil {
+		return err
+	}
+	str.Flush()
+	f, err := os.OpenFile(path, os.O_WRONLY|os.O_APPEND, os.ModePerm)
+	if err != nil {
+		return err
+	}
+	_, err = f.Write(buf.Bytes())
+	if err != nil {
+		return err
+	}
+	err = f.Close()
+	if err != nil {
+		return err
+	}
 	cmd := exec.Command("go", "fmt", path)
 	return cmd.Run()
 }
