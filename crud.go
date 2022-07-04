@@ -688,7 +688,7 @@ func (c CRUDGenerator) UpdateAPIClient(q godb.Queryer, path string, content []by
 	}`
 	readApi := `
     // Read{{ .Model }} Read {{ icameled .Model }} http method
-	func (s Service) Read{{ .Model }}(id int64) ({{ icameled .Model }} {{ .Model }}, e porterr.IError) {
+	func (s Service) Read{{ .Model }}({{ $index := 0 }}{{ range $key, $column := .Columns }}{{ if $column.IsPrimaryKey }}{{ if $index }}, {{ end }}{{ $index = inc $index }} {{ icameled $column.Name }} {{ $column.ModelType }} {{ end }}{{ end }}) ({{ icameled .Model }} {{ .Model }}, e porterr.IError) {
 		response := gorest.JsonResponse{Data: &{{ icameled .Model }}}
 		_, err := s.EnsureJSON(http.MethodGet, fmt.Sprintf("api/v1/{{ icameled .Model }}/%v", id), nil, nil, &response)
 		if err != nil {
@@ -698,7 +698,7 @@ func (c CRUDGenerator) UpdateAPIClient(q godb.Queryer, path string, content []by
 	}`
 	updateApi := `
    	// Update{{ .Model }} Update user http method
-	func (s Service) Update{{ .Model }}(id int64, request {{ .Model }}) ({{ icameled .Model }} {{ .Model }}, e porterr.IError) {
+	func (s Service) Update{{ .Model }}({{ $index := 0 }}{{ range $key, $column := .Columns }}{{ if $column.IsPrimaryKey }}{{ if $index }}, {{ end }}{{ $index = inc $index }} {{ icameled $column.Name }} {{ $column.ModelType }} {{ end }}{{ end }}, request {{ .Model }}) ({{ icameled .Model }} {{ .Model }}, e porterr.IError) {
 		response := gorest.JsonResponse{Data: &{{ icameled .Model }}}
 		_, err := s.EnsureJSON(http.MethodPatch, fmt.Sprintf("api/v1/{{ icameled .Model }}/%v", id), nil, request, &response)
 		if err != nil {
@@ -708,7 +708,7 @@ func (c CRUDGenerator) UpdateAPIClient(q godb.Queryer, path string, content []by
 	}`
 	deleteApi := `
    	// Delete{{ .Model }} Delete {{ icameled .Model }} http method
-	func (s Service) Delete{{ .Model }}(id int64) (e porterr.IError) {
+	func (s Service) Delete{{ .Model }}({{ $index := 0 }}{{ range $key, $column := .Columns }}{{ if $column.IsPrimaryKey }}{{ if $index }}, {{ end }}{{ $index = inc $index }} {{ icameled $column.Name }} {{ $column.ModelType }} {{ end }}{{ end }}) (e porterr.IError) {
 		_, err := s.EnsureJSON(http.MethodDelete, fmt.Sprintf("api/v1/{{ icameled .Model }}/%v", id), nil, nil, nil)
 		if err != nil {
 			e = err.(*porterr.PortError)
