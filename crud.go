@@ -611,7 +611,7 @@ func (c CRUDGenerator) MakeAPIClient(q godb.Queryer, schema, table, version stri
 			return err
 		}
 		_ = f.Close()
-		return c.UpdateAPIClient(path, content, schema, table, num)
+		return c.UpdateAPIClient(q, path, content, schema, table, num)
 	}
 
 	// New Template
@@ -635,17 +635,28 @@ func (c CRUDGenerator) MakeAPIClient(q godb.Queryer, schema, table, version stri
 		`"net/http"`,
 	}
 
+	// Columns
+	columns, err := GetTableColumns(q, schema, table, DefaultSystemColumns, getDictionaryItems(q))
+	if err != nil {
+		return err
+	}
+	if columns == nil || len(*columns) == 0 {
+		return errors.New("No table found or no columns in table ")
+	}
+
 	// Parse template to file
 	err = tmp.Execute(file, struct {
 		Package string
 		Imports []string
 		Model   string
 		PossibleCrudMethods
+		Columns Columns
 	}{
 		Package:             "client",
 		Imports:             imports,
 		Model:               getModelName(schema, table),
 		PossibleCrudMethods: num.GetPossibleMethods(),
+		Columns:             *columns,
 	})
 
 	if err != nil {
@@ -661,7 +672,7 @@ func (c CRUDGenerator) MakeAPIClient(q godb.Queryer, schema, table, version stri
 	return cmd.Run()
 }
 
-func (c CRUDGenerator) UpdateAPIClient(path string, content []byte, schema, table string, num CrudNumber) error {
+func (c CRUDGenerator) UpdateAPIClient(q godb.Queryer, path string, content []byte, schema, table string, num CrudNumber) error {
 	pcm := num.GetPossibleMethodsArray()
 	modelName := getModelName(schema, table)
 
@@ -747,6 +758,15 @@ func (c CRUDGenerator) UpdateAPIClient(path string, content []byte, schema, tabl
 		}
 	}
 
+	// Columns
+	columns, err := GetTableColumns(q, schema, table, DefaultSystemColumns, getDictionaryItems(q))
+	if err != nil {
+		return err
+	}
+	if columns == nil || len(*columns) == 0 {
+		return errors.New("No table found or no columns in table ")
+	}
+
 	tml, err = tml.Parse(needleContent)
 	if err != nil {
 		return err
@@ -755,9 +775,11 @@ func (c CRUDGenerator) UpdateAPIClient(path string, content []byte, schema, tabl
 	buf := bytes.NewBuffer(data)
 	var str = bufio.NewWriter(buf)
 	err = tml.Execute(str, struct {
-		Model string
+		Model   string
+		Columns Columns
 	}{
-		Model: modelName,
+		Model:   modelName,
+		Columns: *columns,
 	})
 	if err != nil {
 		return err
