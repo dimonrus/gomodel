@@ -801,6 +801,49 @@ func (c CRUDGenerator) UpdateAPIClient(q godb.Queryer, path string, content []by
 	return cmd.Run()
 }
 
+// AddToGlobalRoute add global route for target entity
+func (c CRUDGenerator) AddToGlobalRoute(schema, table, version string) error {
+	path := c.APIPath + string(os.PathSeparator) + "../route.go"
+	var content []byte
+	var err error
+	content, err = os.ReadFile(path)
+	if err != nil {
+		return err
+	}
+	reader := bufio.NewReader(bytes.NewReader(content))
+
+	var newContent strings.Builder
+	var alias = gohelp.ToCamelCase(getModelName(schema, table), false) + strings.ToUpper(version)
+	for {
+		var line []byte
+		line, _, err = reader.ReadLine()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return err
+		}
+		if strings.Contains(string(line), "net/http") {
+			importString := alias + " \"" + c.APIPath + "/" + gohelp.ToUnderscore(getModelName(schema, table)) + "/" + version + "\"\n\n"
+			newContent.WriteString(importString)
+		} else if strings.Contains(string(line), "Setup middleware") {
+			newContent.WriteString(fmt.Sprintf("// %s sub route \n %s.Init(ApiRoute%s) \n\n", getModelName(schema, table), alias, strings.ToUpper(version)))
+		}
+		newContent.WriteString(string(line) + "\n")
+	}
+	f, err := os.OpenFile(path, os.O_WRONLY, os.ModePerm)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	_, err = f.WriteString(newContent.String())
+	if err != nil {
+		return err
+	}
+	cmd := exec.Command("go", "fmt", path)
+	return cmd.Run()
+}
+
 // Generate generate crud, client, api
 // q - database connection
 // schema - db schema (table namespace)
@@ -856,6 +899,10 @@ func (c CRUDGenerator) Generate(q godb.Queryer, schema, table, version string, n
 			return err
 		}
 		err = c.MakeAPIClient(q, schema, table, version, num)
+		if err != nil {
+			return err
+		}
+		err = c.AddToGlobalRoute(schema, table, version)
 		if err != nil {
 			return err
 		}
