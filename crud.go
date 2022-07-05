@@ -814,6 +814,10 @@ func (c CRUDGenerator) AddToGlobalRoute(schema, table, version string) error {
 
 	var newContent strings.Builder
 	var alias = gohelp.ToCamelCase(getModelName(schema, table), false) + strings.ToUpper(version)
+	var initString = fmt.Sprintf("%s.Init(ApiRoute%s)", alias, strings.ToUpper(version))
+	var versionSubRoute bool
+	var importVersion bool
+	var subRouteAdded = strings.Contains(string(content), initString)
 	for {
 		var line []byte
 		line, _, err = reader.ReadLine()
@@ -823,11 +827,23 @@ func (c CRUDGenerator) AddToGlobalRoute(schema, table, version string) error {
 			}
 			return err
 		}
-		if strings.Contains(string(line), "net/http") {
-			importString := alias + " \"" + c.APIPath + "/" + gohelp.ToUnderscore(getModelName(schema, table)) + "/" + version + "\"\n\n"
+		if strings.Contains(string(line), "ApiRoute"+strings.ToUpper(version)) {
+			versionSubRoute = true
+		}
+		if strings.Contains(string(line), alias) {
+			importVersion = true
+		}
+		if strings.Contains(string(line), "net/http") && !importVersion {
+			importString := alias + " \"" + c.ProjectPath + "/" + c.APIPath + "/" + gohelp.ToUnderscore(getModelName(schema, table)) + "/" + version + "\"\n\n"
 			newContent.WriteString(importString)
 		} else if strings.Contains(string(line), "Setup middleware") {
-			newContent.WriteString(fmt.Sprintf("// %s sub route \n %s.Init(ApiRoute%s) \n\n", getModelName(schema, table), alias, strings.ToUpper(version)))
+			if !versionSubRoute {
+				subRoute := fmt.Sprintf("// Api %s routes \n ApiRoute%s := ApiRoute.PathPrefix(\"%s\").Subrouter() \n\n", version, strings.ToUpper(version), "/"+version)
+				newContent.WriteString(subRoute)
+			}
+			if !subRouteAdded {
+				newContent.WriteString(fmt.Sprintf("// %s sub route \n %s.Init(ApiRoute%s) \n\n", getModelName(schema, table), alias, strings.ToUpper(version)))
+			}
 		}
 		newContent.WriteString(string(line) + "\n")
 	}
