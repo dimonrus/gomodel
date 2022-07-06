@@ -471,7 +471,7 @@ func CreateFile(name, path string) (*os.File, string, error) {
 	return f, filePath, nil
 }
 
-// Create file in os
+// CreateModelFile Create file in os
 func CreateModelFile(schema string, table string, path string) (*os.File, string, error) {
 	fileName := fmt.Sprintf("%s", table)
 	if schema != "public" {
@@ -491,60 +491,55 @@ func getModelName(schema string, table string) string {
 	return name
 }
 
-// Create model
-func MakeModel(db godb.Queryer, dir string, schema string, table string, templatePath string, systemColumns SystemColumns) error {
+// MakeModel Create model
+func MakeModel(db godb.Queryer, dir string, schema string, table string, templatePath string, systemColumns SystemColumns) (modelName string, columns *Columns, err error) {
 	// Imports in model file
 	var imports = []string{
 		`"github.com/dimonrus/gomodel"`,
 	}
-
+	// Check if table is empty
 	if table == "" {
-		return errors.New("table name is empty")
+		err = errors.New("table name is empty")
+		return
 	}
-
+	// Get model name
+	modelName = getModelName(schema, table)
 	// New Template
 	tmpl := template.New("model").Funcs(getHelperFunc(systemColumns))
-
+	// Get preloaded template
 	var tmlString = DefaultModelTemplate
-
 	templateFile, err := os.Open(templatePath)
 	if err == nil {
+		var data []byte
 		// Read template
-		data, err := ioutil.ReadAll(templateFile)
+		data, err = ioutil.ReadAll(templateFile)
 		if err != nil {
-			return err
+			return
 		}
 		tmlString = string(data)
 	} else if tmlString == "" {
-		return err
+		return
 	}
-
+	// Get dictionary items
 	dictionaryItems := getDictionaryItems(db)
-
 	// Open model template
 	tmpl = template.Must(tmpl.Parse(tmlString))
-
 	// Columns
-	columns, err := GetTableColumns(db, schema, table, systemColumns, dictionaryItems)
+	columns, err = GetTableColumns(db, schema, table, systemColumns, dictionaryItems)
 	if err != nil {
-		return err
+		return
 	}
-
 	if columns == nil || len(*columns) == 0 {
-		return errors.New("No table found or no columns in table ")
+		err = errors.New("No table found or no columns in table")
+		return
 	}
-
 	// Table comment
 	tableDescription := columns.GetTableDescription()
-
 	// Collect imports
 	for _, column := range *columns {
 		imports = gohelp.AppendUnique(imports, column.Import)
 	}
-
-	// To camel case
-	modelName := getModelName(schema, table)
-
+	// Check for sequence
 	var hasSequence bool
 	// Check for sequence and primary key
 	for _, column := range *columns {
@@ -553,6 +548,7 @@ func MakeModel(db godb.Queryer, dir string, schema string, table string, templat
 			break
 		}
 	}
+	// Define package
 	packageNames := strings.Split(dir, string(os.PathSeparator))
 	var packageName string
 	if len(packageNames) > 0 {
@@ -560,13 +556,11 @@ func MakeModel(db godb.Queryer, dir string, schema string, table string, templat
 	} else {
 		packageName = dir
 	}
-
 	// Create file
 	file, path, err := CreateModelFile(schema, table, dir)
 	if err != nil {
-		return err
+		return
 	}
-
 	// Parse template to file
 	err = tmpl.Execute(file, struct {
 		Package          string
@@ -585,33 +579,28 @@ func MakeModel(db godb.Queryer, dir string, schema string, table string, templat
 		HasSequence:      hasSequence,
 		Imports:          imports,
 	})
-
 	if err != nil {
-		return err
+		return
 	}
-
 	err = file.Close()
 	if err != nil {
-		return err
+		return
 	}
-
 	// Format code
 	cmd := exec.Command("go", "fmt", path)
 	err = cmd.Run()
 	if err != nil {
-		return err
+		return
 	}
-
 	if dbo, ok := db.(*godb.DBO); ok {
 		dbo.Logger.Printf("Model file created: %s", path)
 	}
-
 	// Create all foreign models if not exists
 	for i := range *columns {
 		c := (*columns)[i]
 		if c.ForeignTable != nil {
 			var found bool
-			err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+			err = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 				if info == nil {
 					return nil
 				}
@@ -634,17 +623,15 @@ func MakeModel(db godb.Queryer, dir string, schema string, table string, templat
 				return nil
 			})
 			if err != nil {
-				return err
+				return
 			}
 			if !found {
-				err = MakeModel(db, dir, *c.ForeignSchema, *c.ForeignTable, templatePath, systemColumns)
+				_, _, err = MakeModel(db, dir, *c.ForeignSchema, *c.ForeignTable, templatePath, systemColumns)
 				if err != nil {
 					db.(*godb.DBO).Logger.Printf("Model file generator error: %s", err.Error())
 				}
 			}
 		}
 	}
-	return nil
+	return
 }
-
-// TODO generate client with methods

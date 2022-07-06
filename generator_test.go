@@ -10,7 +10,7 @@ func TestMakeModel(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = MakeModel(db, "models", "public", "reset_password", "", DefaultSystemColumnsSoft)
+	_, _, err = MakeModel(db, "models", "public", "reset_password", "", DefaultSystemColumnsSoft)
 	if err != nil {
 		t.Fatal(err)
 	}
