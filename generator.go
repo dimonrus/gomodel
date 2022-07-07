@@ -439,12 +439,17 @@ func getHelperFunc(systemColumns SystemColumns) template.FuncMap {
 		"jsonTag": func(name string) string {
 			return fmt.Sprintf(`%cjson:"%s"%c`, '`', gohelp.ToCamelCase(multipleValueName(name), false), '`')
 		},
+		"jsonSingleTag": func(name string) string {
+			return fmt.Sprintf(`%cjson:"%s"%c`, '`', gohelp.ToCamelCase(name, false), '`')
+		},
 	}
 }
 
 func multipleValueName(name string) string {
 	if name[len(name)-1] == 'y' {
 		return name[:len(name)-1] + "ies"
+	} else if name[len(name)-1] == 'h' {
+		return name[:len(name)-1] + "es"
 	} else if name[len(name)-1] != 's' {
 		return name + "s"
 	}

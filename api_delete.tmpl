@@ -5,6 +5,35 @@ import (
 {{ end }}
 )
 {{ $index := 0 }} {{ $model := .Model }}
+// RequestDelete{{ .Model }} Request form for delete {{ .Model }}
+//
+// swagger:parameters Delete{{ .Model }}
+type RequestDelete{{ .Model }} struct {
+    {{ range $key, $column := .Columns }}{{ if $column.IsPrimaryKey }}{{ if $column.Description }}// {{ $column.Description }}{{ end }}
+    // Required: true
+    // in: path
+    {{ $column.ModelName }} {{ $column.ModelType }} {{ jsonSingleTag $column.ModelName }} {{ end }}
+    {{ end }}
+}
+{{ $index = 0 }}
+// swagger:route DELETE /{{ .Package }}/{{ icameled .Model }}/{ {{ range $key, $column := .Columns }}{{ if $column.IsPrimaryKey }}{{ icameled $column.ModelName }}{{ end }}{{ end }} } Delete Delete{{ .Model }}
+//
+// {{ .Model }}. Delete entity by primary key
+//
+// Delete and return ok
+//
+//     Consumes:
+//     - application/json
+//
+//     Produces:
+//     - application/json
+//
+//     Schemes: https
+//
+//     Responses:
+//       200: ResponseMessage
+//       400: ResponseError
+//       500: ResponseError
 func Delete{{ .Model }}(w http.ResponseWriter, r *http.Request) { {{ range $key, $column := .Columns }}{{ if $column.IsPrimaryKey }}
     {{ parseIdentifier $column.Name $column.ModelType}}{{ end }}{{ end }}
     {{ icameled .Model }} := core.New{{ $model }}().SetPrimary({{ range $key, $column := .Columns }}{{ if $column.IsPrimaryKey }}{{ if $index }}, {{ end }}{{ $index = inc $index }} {{ castToIdentifier $column.Name $column.ModelType }} {{ end }}{{ end }})

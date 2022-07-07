@@ -256,6 +256,7 @@ func (c CRUDGenerator) MakeAPIRead(logger gocli.Logger, schema, table, version s
 		`"github.com/gorilla/mux"`,
 		`"github.com/dimonrus/gorest"`,
 		fmt.Sprintf(`"%s/app/base"`, c.ProjectPath),
+		fmt.Sprintf(`"%s/%s"`, c.ProjectPath, c.ClientPath),
 		fmt.Sprintf(`"%s/%s"`, c.ProjectPath, c.CRUDPath),
 	}
 	// Parse template to file
@@ -338,6 +339,7 @@ func (c CRUDGenerator) MakeAPIUpdate(logger gocli.Logger, schema, table, version
 		`"github.com/gorilla/mux"`,
 		`"github.com/dimonrus/gorest"`,
 		fmt.Sprintf(`"%s/app/base"`, c.ProjectPath),
+		fmt.Sprintf(`"%s/%s"`, c.ProjectPath, c.ClientPath),
 		fmt.Sprintf(`"%s/%s"`, c.ProjectPath, c.CRUDPath),
 	}
 	// Parse template to file
@@ -377,6 +379,7 @@ func (c CRUDGenerator) MakeAPICreate(logger gocli.Logger, schema, table, version
 		`"net/http"`,
 		`"github.com/dimonrus/gorest"`,
 		fmt.Sprintf(`"%s/app/base"`, c.ProjectPath),
+		fmt.Sprintf(`"%s/%s"`, c.ProjectPath, c.ClientPath),
 		fmt.Sprintf(`"%s/%s"`, c.ProjectPath, c.CRUDPath),
 	}
 	// Parse template to file

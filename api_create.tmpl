@@ -5,6 +5,47 @@ import (
 {{ end }}
 )
 {{ $index := 0 }} {{ $model := .Model }}
+// RequestCreateUser Request form for create {{ .Model }}
+//
+// swagger:parameters Create{{ .Model }}
+type RequestCreate{{ .Model }} struct {
+    // In: body
+    Body struct {
+        client.{{ .Model }}
+    }
+}
+
+// ResponseCreate{{ .Model }} Response {{ icameled .Model }} entity
+//
+// swagger:response ResponseCreate{{ .Model }}
+type ResponseCreate{{ .Model }} struct {
+    // In: body
+    Body struct {
+        // System message
+        Message string `json:"message,omitempty"`
+        // {{ .Model }} entity
+        Data client.{{ .Model }} `json:"data"`
+    }
+}
+
+// swagger:route POST /{{ .Package }}/{{ icameled .Model }} Create Create{{ .Model }}
+//
+// {{ .Model }}. Create new entity
+//
+// Create entity and return result
+//
+//     Consumes:
+//     - application/json
+//
+//     Produces:
+//     - application/json
+//
+//     Schemes: https
+//
+//     Responses:
+//       200: ResponseCreate{{ .Model }}
+//       400: ResponseError
+//       500: ResponseError
 func Create{{ .Model }}(w http.ResponseWriter, r *http.Request) {
     {{ icameled .Model }} := core.New{{ $model }}()
     e := gorest.ParseJsonBody(r.Body, {{ icameled .Model }}.{{ .Model}})

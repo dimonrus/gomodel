@@ -5,6 +5,49 @@ import (
 {{ end }}
 )
 {{ $index := 0 }} {{ $model := .Model }}
+// RequestRead{{ .Model }} Request form for read {{ .Model }}
+//
+// swagger:parameters Read{{ .Model }}
+type RequestRead{{ .Model }} struct {
+    {{ range $key, $column := .Columns }}{{ if $column.IsPrimaryKey }}{{ if $column.Description }}// {{ $column.Description }}{{ end }}
+    // Required: true
+    // in: path
+    {{ $column.ModelName }} {{ $column.ModelType }} {{ jsonSingleTag $column.ModelName }} {{ end }}
+    {{ end }}
+}
+
+// ResponseRead{{ .Model }} Response {{ icameled .Model }} entity
+//
+// swagger:response ResponseRead{{ .Model }}
+type ResponseRead{{ .Model }} struct {
+    // In: body
+    Body struct {
+        // System message
+        Message string `json:"message,omitempty"`
+        // {{ .Model }} entity
+        Data client.{{ .Model }} `json:"data"`
+    }
+}
+
+{{ $index = 0 }}
+// swagger:route GET /{{ .Package }}/{{ icameled .Model }}/{ {{ range $key, $column := .Columns }}{{ if $column.IsPrimaryKey }}{{ icameled $column.ModelName }}{{ end }}{{ end }} } Read Read{{ .Model }}
+//
+// {{ .Model }}. Read entity by primary key
+//
+// Read and return entity
+//
+//     Consumes:
+//     - application/json
+//
+//     Produces:
+//     - application/json
+//
+//     Schemes: https
+//
+//     Responses:
+//       200: ResponseRead{{ .Model }}
+//       400: ResponseError
+//       500: ResponseError
 func Read{{ .Model }}(w http.ResponseWriter, r *http.Request) { {{ range $key, $column := .Columns }}{{ if $column.IsPrimaryKey }}
     {{ parseIdentifier $column.Name $column.ModelType}}{{ end }}{{ end }}
     {{ icameled .Model }} := core.New{{ $model }}().SetPrimary({{ range $key, $column := .Columns }}{{ if $column.IsPrimaryKey }}{{ if $index }}, {{ end }}{{ $index = inc $index }} {{ castToIdentifier $column.Name $column.ModelType }} {{ end }}{{ end }})

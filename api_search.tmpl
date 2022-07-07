@@ -4,6 +4,48 @@ import (
 {{ range $key, $import := .Imports }}{{ $import }}
 {{ end }}
 )
+{{ $index := 0 }} {{ $model := .Model }}
+// RequestSearchUser Request form for search {{ .Model }}
+//
+// swagger:parameters Search{{ .Model }}
+type RequestSearch{{ .Model }} struct {
+    // In: body
+    Body struct {
+        client.{{ .Model }}SearchForm
+    }
+}
+
+// ResponseSearch{{ .Model }} Response {{ icameled .Model }} list
+//
+// swagger:response ResponseSearch{{ .Model }}
+type ResponseSearch{{ .Model }} struct {
+    // In: body
+    Body struct {
+        // System message
+        Message string `json:"message,omitempty"`
+        // {{ .Model }} entity list
+        Data []client.{{ .Model }} `json:"data"`
+    }
+}
+
+// swagger:route POST /{{ .Package }}/{{ icameled .Model }}/list Search Search{{ .Model }}
+//
+// {{ .Model }}. Search {{ icameled .Model }} entities
+//
+// Make request for entity search
+//
+//     Consumes:
+//     - application/json
+//
+//     Produces:
+//     - application/json
+//
+//     Schemes: https
+//
+//     Responses:
+//       200: ResponseSearch{{ .Model }}
+//       400: ResponseError
+//       500: ResponseError
 func Search{{ .Model }}(w http.ResponseWriter, r *http.Request) {
     request := client.{{ .Model }}SearchForm{}
     e := gorest.ParseJsonBody(r.Body, &request)
