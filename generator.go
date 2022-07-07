@@ -391,6 +391,9 @@ func getHelperFunc(systemColumns SystemColumns) template.FuncMap {
 		"model": func(schema string, table string) string {
 			return getModelName(schema, table)
 		},
+		"underscore": func(name string) string {
+			return gohelp.ToUnderscore(name)
+		},
 		"pointerType": func(modelType string) string {
 			if modelType[0] != '*' {
 				return "*" + modelType

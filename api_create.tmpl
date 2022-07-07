@@ -5,7 +5,7 @@ import (
 {{ end }}
 )
 {{ $index := 0 }} {{ $model := .Model }}
-// RequestCreateUser Request form for create {{ .Model }}
+// RequestCreate{{ .Model }} Request form for create {{ .Model }}
 //
 // swagger:parameters Create{{ .Model }}
 type RequestCreate{{ .Model }} struct {
@@ -28,7 +28,7 @@ type ResponseCreate{{ .Model }} struct {
     }
 }
 
-// swagger:route POST /{{ .Package }}/{{ icameled .Model }} Create Create{{ .Model }}
+// swagger:route POST /{{ .Package }}/{{ underscore .Model }} Create Create{{ .Model }}
 //
 // {{ .Model }}. Create new entity
 //

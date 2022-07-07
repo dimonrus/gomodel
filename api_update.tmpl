@@ -33,7 +33,7 @@ type ResponseUpdate{{ .Model }} struct {
 }
 
 {{ $index = 0 }}
-// swagger:route PATCH /{{ .Package }}/{{ icameled .Model }}/{ {{ range $key, $column := .Columns }}{{ if $column.IsPrimaryKey }}{{ icameled $column.ModelName }}{{ end }}{{ end }} } Update Update{{ .Model }}
+// swagger:route PATCH /{{ .Package }}/{{ underscore .Model }}/{{"{"}}{{ range $key, $column := .Columns }}{{ if $column.IsPrimaryKey }}{{ icameled $column.ModelName }}{{ end }}{{ end }}{{"}"}} Update Update{{ .Model }}
 //
 // {{ .Model }}. Update entity by primary key
 //

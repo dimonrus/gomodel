@@ -8,7 +8,7 @@ import (
 // {{ .Model }} sub route
 func Init(apiRoute *mux.Router, middleware ...mux.MiddlewareFunc) {
     // Route
-    {{ .Model }}Route := apiRoute.PathPrefix("/{{ icameled .Model }}").Subrouter()
+    {{ .Model }}Route := apiRoute.PathPrefix("/{{ underscore .Model }}").Subrouter()
     {{ if .Create }}// Create
     {{ .Model }}Route.HandleFunc("", Create{{ .Model }}).Methods(http.MethodPost){{ end }}
     {{ if .Read }}// Read

@@ -5,7 +5,7 @@ import (
 {{ end }}
 )
 {{ $index := 0 }} {{ $model := .Model }}
-// RequestSearchUser Request form for search {{ .Model }}
+// RequestSearch{{ .Model }} Request form for search {{ .Model }}
 //
 // swagger:parameters Search{{ .Model }}
 type RequestSearch{{ .Model }} struct {
@@ -28,7 +28,7 @@ type ResponseSearch{{ .Model }} struct {
     }
 }
 
-// swagger:route POST /{{ .Package }}/{{ icameled .Model }}/list Search Search{{ .Model }}
+// swagger:route POST /{{ .Package }}/{{ underscore .Model }}/list Search Search{{ .Model }}
 //
 // {{ .Model }}. Search {{ icameled .Model }} entities
 //

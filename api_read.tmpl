@@ -30,7 +30,7 @@ type ResponseRead{{ .Model }} struct {
 }
 
 {{ $index = 0 }}
-// swagger:route GET /{{ .Package }}/{{ icameled .Model }}/{ {{ range $key, $column := .Columns }}{{ if $column.IsPrimaryKey }}{{ icameled $column.ModelName }}{{ end }}{{ end }} } Read Read{{ .Model }}
+// swagger:route GET /{{ .Package }}/{{ underscore .Model }}/{{"{"}}{{ range $key, $column := .Columns }}{{ if $column.IsPrimaryKey }}{{ icameled $column.ModelName }}{{ end }}{{ end }}{{"}"}} Read Read{{ .Model }}
 //
 // {{ .Model }}. Read entity by primary key
 //
