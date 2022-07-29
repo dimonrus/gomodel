@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/dimonrus/godb/v2"
 	"github.com/dimonrus/gohelp"
+	"github.com/dimonrus/gosql"
 	"os"
 	"os/exec"
 	"strconv"
@@ -91,36 +92,36 @@ func (m *DictionaryModel) Values() (values []interface{}) {
 	return []interface{}{&m.Id, &m.Type, &m.Code, &m.Label, &m.CreatedAt, &m.UpdatedAt, &m.DeletedAt}
 }
 
+// Get all sql
+func getDictionarySQList() gosql.SQList {
+	var sqList gosql.SQList
+
+	dict := gosql.CreateTable("dictionary").IfNotExists()
+	dict.AddColumn("id").Type("INT").Constraint().NotNull().PrimaryKey()
+	dict.AddColumn("type").Type("TEXT").Constraint().NotNull()
+	dict.AddColumn("code").Type("TEXT").Constraint().NotNull()
+	dict.AddColumn("label").Type("TEXT")
+
+	gosql.TableModeler{TimestampModifier, SoftModifier}.Prepare(dict)
+
+	sqList = append(sqList, dict,
+		gosql.Comment().Column("dictionary.id", "Dictionary row identifier"),
+		gosql.Comment().Column("dictionary.type", "Dictionary row type"),
+		gosql.Comment().Column("dictionary.code", "Dictionary row code"),
+		gosql.Comment().Column("dictionary.label", "Dictionary row value label"),
+		gosql.Comment().Column("dictionary.created_at", "Dictionary row created time"),
+		gosql.Comment().Column("dictionary.updated_at", "Dictionary row updated time"),
+		gosql.Comment().Column("dictionary.deleted_at", "Dictionary row deleted time"),
+		gosql.CreateIndex("dictionary", "type").IfNotExists().AutoName())
+
+	return sqList
+}
+
 // Create Table
 func CreateDictionaryTable(q godb.Queryer) error {
-	query := `
-CREATE TABLE IF NOT EXISTS dictionary
-(
-  id         INT PRIMARY KEY                                 NOT NULL,
-  type       TEXT                                            NOT NULL,
-  code       TEXT                                            NOT NULL,
-  label      TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT localtimestamp NOT NULL,
-  updated_at TIMESTAMP WITH TIME ZONE,
-  deleted_at TIMESTAMP WITH TIME ZONE
-);
-
-COMMENT ON COLUMN dictionary.id IS 'Dictionary row identifier';
-COMMENT ON COLUMN dictionary.type IS 'Dictionary row type';
-COMMENT ON COLUMN dictionary.code IS 'Dictionary row code';
-COMMENT ON COLUMN dictionary.label IS 'ОDictionary row value label';
-COMMENT ON COLUMN dictionary.created_at IS 'Dictionary row created time';
-COMMENT ON COLUMN dictionary.updated_at IS 'Dictionary row updated time';
-COMMENT ON COLUMN dictionary.deleted_at IS 'Dictionary row deleted time';
-
-CREATE INDEX IF NOT EXISTS dictionary_type_idx ON dictionary (type);`
-
+	query, _, _ := getDictionarySQList().Join()
 	_, err := q.Exec(query)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 // Create or update dictionary mapping
