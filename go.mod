@@ -6,7 +6,7 @@ require (
 	github.com/dimonrus/gocli v0.9.5
 	github.com/dimonrus/godb/v2 v2.0.0-rc1
 	github.com/dimonrus/gohelp v1.1.1
-	github.com/dimonrus/gosql v0.6.1
+	github.com/dimonrus/gosql v0.6.2
 	github.com/dimonrus/porterr v1.10.4
 	github.com/lib/pq v1.10.6
 )
