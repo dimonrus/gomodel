@@ -28,7 +28,7 @@ type ResponseCreate{{ .Model }} struct {
     }
 }
 
-// swagger:route POST /{{ .Package }}/{{ underscore .Model }} Create Create{{ .Model }}
+// swagger:route POST /{{ .Package }}/{{ underscore .Model }} {{ .Model }} Create{{ .Model }}
 //
 // {{ .Model }}. Create new entity
 //

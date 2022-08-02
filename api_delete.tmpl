@@ -16,7 +16,7 @@ type RequestDelete{{ .Model }} struct {
     {{ end }}
 }
 {{ $index = 0 }}
-// swagger:route DELETE /{{ .Package }}/{{ underscore .Model }}/{{"{"}}{{ range $key, $column := .Columns }}{{ if $column.IsPrimaryKey }}{{ icameled $column.ModelName }}{{ end }}{{ end }}{{"}"}} Delete Delete{{ .Model }}
+// swagger:route DELETE /{{ .Package }}/{{ underscore .Model }}/{{"{"}}{{ range $key, $column := .Columns }}{{ if $column.IsPrimaryKey }}{{ icameled $column.ModelName }}{{ end }}{{ end }}{{"}"}} {{ .Model }} Delete{{ .Model }}
 //
 // {{ .Model }}. Delete entity by primary key
 //

@@ -28,7 +28,7 @@ type ResponseSearch{{ .Model }} struct {
     }
 }
 
-// swagger:route POST /{{ .Package }}/{{ underscore .Model }}/list Search Search{{ .Model }}
+// swagger:route POST /{{ .Package }}/{{ underscore .Model }}/list {{ .Model }} Search{{ .Model }}
 //
 // {{ .Model }}. Search {{ icameled .Model }} entities
 //
