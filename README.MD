@@ -18,6 +18,82 @@ if err != nil {
 }
 ```
 
+*Example of generated model*
+
+```
+// Dictionary model
+type Dictionary struct {
+	// Dictionary row identifier
+	Id *int32 `db:"col~id;prk;req;unq;" json:"id" valid:"required"`
+	// Dictionary row type
+	Type *string `db:"col~type;req;" json:"type" valid:"required"`
+	// Dictionary row code
+	Code *string `db:"col~code;req;" json:"code" valid:"required"`
+	// Dictionary row value label
+	Label *string `db:"col~label;" json:"label"`
+	// Dictionary row created time
+	CreatedAt *time.Time `db:"col~created_at;req;cat;" json:"createdAt"`
+	// Dictionary row updated time
+	UpdatedAt *time.Time `db:"col~updated_at;uat;" json:"updatedAt"`
+	// Dictionary row deleted time
+	DeletedAt *time.Time `db:"col~deleted_at;dat;" json:"deletedAt"`
+}
+
+// Table get Dictionary model table name
+func (m *Dictionary) Table() string {
+	return "dictionary"
+}
+
+// Columns get all Dictionary model columns
+func (m *Dictionary) Columns() []string {
+	return []string{"id", "type", "code", "label", "created_at", "updated_at", "deleted_at"}
+}
+
+// Values get all Dictionary model values
+func (m *Dictionary) Values() []any {
+	return []any{&m.Id, &m.Type, &m.Code, &m.Label, &m.CreatedAt, &m.UpdatedAt, &m.DeletedAt}
+}
+
+// NewDictionary init Dictionary model method
+func NewDictionary() *Dictionary {
+	return &Dictionary{}
+}
+
+// NewDictionaryCollection init Dictionary collection
+func NewDictionaryCollection() *gomodel.Collection[Dictionary] {
+	return gomodel.NewCollection[Dictionary]()
+}
+```
+You can use collection for load, save, and delete collection items in mass action scenarios. Example
+```
+// Update items
+c := NewDictionaryCollection()
+c.Map(func(item *Dictionary) {
+    if item.Label != nil {
+        item.Label = nil
+    }
+})
+c.Save(db)
+
+// Load dictionary collection where label is not null and updated_at >= "2022-01-01"
+c := NewDictionaryCollection()
+c.Where().AddExpression("label IS NOT NULL")
+c.Where().AddExpression("updated_at >= ?", time.Date(2022, 1, 1, 0,0,0,1, time.UTC))
+e := c.Load(db)
+if e != nil {
+    return
+}
+
+// Delete if found items with such condition
+if c.Count() > 0 {
+    e = c.Delete(db)
+    if e != nil {
+        return
+    }
+}
+```
+
+
 *Create dictionary mapping*
 ```
 err := GenerateDictionaryMapping("app/io/db/models/dictionary_mapping.go", base.App.GetDB())
