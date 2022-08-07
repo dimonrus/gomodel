@@ -60,7 +60,7 @@ func (c *Collection[T]) Item() *T {
 }
 
 // Clear collection
-func (c *Collection[T]) clear() {
+func (c *Collection[T]) Clear() {
 	c.Iterator.Reset()
 	c.items = c.items[:0]
 }
@@ -121,7 +121,7 @@ func (c *Collection[T]) Load(q godb.Queryer) porterr.IError {
 		return e
 	}
 	defer func() { _ = rows.Close() }()
-	c.clear()
+	c.Clear()
 	return c.scan(rows)
 }
 
