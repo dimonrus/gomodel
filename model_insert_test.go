@@ -25,10 +25,10 @@ func TestGetInsertSQL(t *testing.T) {
 		if len(returning) != 4 {
 			t.Fatal("insert_1 wrong returning len")
 		}
-		if returning[0] != m.Id {
+		if returning[0] != &m.Id {
 			t.Fatal("insert_1 wrong returning[0] param")
 		}
-		if returning[3] != m.DeletedAt {
+		if returning[3] != &m.DeletedAt {
 			t.Fatal("insert_1 wrong returning[3] param")
 		}
 	})
@@ -52,10 +52,10 @@ func TestGetInsertSQL(t *testing.T) {
 		if len(returning) != 4 {
 			t.Fatal("insert_1 wrong returning len")
 		}
-		if returning[0] != m.Id {
+		if returning[0] != &m.Id {
 			t.Fatal("insert_1 wrong returning[0] param")
 		}
-		if returning[3] != m.DeletedAt {
+		if returning[3] != &m.DeletedAt {
 			t.Fatal("insert_1 wrong returning[3] param")
 		}
 	})
@@ -94,10 +94,10 @@ func TestGetInsertSQL(t *testing.T) {
 		if len(returning) != 4 {
 			t.Fatal("insert_2 wrong returning len")
 		}
-		if returning[0] != m.Id {
+		if returning[0] != &m.Id {
 			t.Fatal("insert_2 wrong returning[0] param")
 		}
-		if returning[3] != m.DeletedAt {
+		if returning[3] != &m.DeletedAt {
 			t.Fatal("insert_2 wrong returning[3] param")
 		}
 	})
@@ -121,10 +121,10 @@ func TestGetInsertSQL(t *testing.T) {
 		if len(returning) != 3 {
 			t.Fatal("upsert_2 wrong returning len")
 		}
-		if returning[0] != m.CreatedAt {
+		if returning[0] != &m.CreatedAt {
 			t.Fatal("upsert_2 wrong returning[0] param")
 		}
-		if returning[2] != m.DeletedAt {
+		if returning[2] != &m.DeletedAt {
 			t.Fatal("upsert_2 wrong returning[2] param")
 		}
 	})
@@ -148,10 +148,10 @@ func TestGetInsertSQL(t *testing.T) {
 		if len(returning) != 3 {
 			t.Fatal("upsert_4 wrong returning len")
 		}
-		if returning[0] != m.CreatedAt {
+		if returning[0] != &m.CreatedAt {
 			t.Fatal("upsert_4 wrong returning[0] param")
 		}
-		if returning[2] != m.DeletedAt {
+		if returning[2] != &m.DeletedAt {
 			t.Fatal("upsert_4 wrong returning[2] param")
 		}
 	})

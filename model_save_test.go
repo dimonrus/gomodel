@@ -99,7 +99,7 @@ func TestGetSaveSQL(t *testing.T) {
 		if param[2] != m.SomeInt {
 			t.Fatal("wrong insert_1 some int addr")
 		}
-		if returning[0] != m.Id {
+		if returning[0] != &m.Id {
 			t.Fatal("wrong insert_1 returning addr")
 		}
 	})
@@ -121,7 +121,7 @@ func TestGetSaveSQL(t *testing.T) {
 		if param[0] != m.Name {
 			t.Fatal("wrong insert_2 name addr")
 		}
-		if returning[0] != m.Id {
+		if returning[0] != &m.Id {
 			t.Fatal("wrong insert_2 returning addr")
 		}
 	})
@@ -131,7 +131,7 @@ func TestGetSaveSQL(t *testing.T) {
 		iSql := GetSaveSQL(&m)
 		query, param, returning := iSql.SQL()
 		t.Log(query, param, returning)
-		if query != "INSERT INTO test_model (name, pages, some_int) VALUES (?, ?, ?) ON CONFLICT (some_int) DO UPDATE SET name = ?, pages = ? RETURNING id, created_at, updated_at, deleted_at;" {
+		if query != "INSERT INTO test_model (name, pages, some_int) VALUES (?, ?, ?) ON CONFLICT (some_int) DO UPDATE SET name = ?, pages = ?, updated_at = NOW() RETURNING id, created_at, updated_at, deleted_at;" {
 			t.Fatal("wrong upsert_1 sql")
 		}
 		if len(param) != 5 {
@@ -143,7 +143,7 @@ func TestGetSaveSQL(t *testing.T) {
 		if param[0] != m.Name {
 			t.Fatal("wrong upsert_1 name addr")
 		}
-		if returning[0] != m.Id {
+		if returning[0] != &m.Id {
 			t.Fatal("wrong upsert_1 returning addr")
 		}
 	})
@@ -153,7 +153,7 @@ func TestGetSaveSQL(t *testing.T) {
 		iSql := GetSaveSQL(&m)
 		query, param, returning := iSql.SQL()
 		t.Log(query, param, returning)
-		if query != "INSERT INTO test_model (id, name, pages, some_int) VALUES (?, ?, ?, ?) ON CONFLICT (id) DO UPDATE SET name = ?, pages = ?, some_int = ? RETURNING created_at, updated_at, deleted_at;" {
+		if query != "INSERT INTO test_model (id, name, pages, some_int) VALUES (?, ?, ?, ?) ON CONFLICT (id) DO UPDATE SET name = ?, pages = ?, some_int = ?, updated_at = NOW() RETURNING created_at, updated_at, deleted_at;" {
 			t.Fatal("wrong upsert_2 sql")
 		}
 		if len(param) != 7 {
@@ -165,7 +165,7 @@ func TestGetSaveSQL(t *testing.T) {
 		if param[0] != m.Id {
 			t.Fatal("wrong upsert_2 name addr")
 		}
-		if returning[0] != m.CreatedAt {
+		if returning[0] != &m.CreatedAt {
 			t.Fatal("wrong upsert_2 returning addr")
 		}
 	})
@@ -175,7 +175,7 @@ func TestGetSaveSQL(t *testing.T) {
 		iSql := GetSaveSQL(&m)
 		query, param, returning := iSql.SQL()
 		t.Log(query, param, returning)
-		if query != "INSERT INTO test_model (id, name, pages, some_int) VALUES (?, ?, ?, ?) ON CONFLICT (id) DO UPDATE SET name = ?, pages = ?, some_int = ? RETURNING created_at, updated_at, deleted_at;" {
+		if query != "INSERT INTO test_model (id, name, pages, some_int) VALUES (?, ?, ?, ?) ON CONFLICT (id) DO UPDATE SET name = ?, pages = ?, some_int = ?, updated_at = NOW() RETURNING created_at, updated_at, deleted_at;" {
 			t.Fatal("wrong upsert_3 sql")
 		}
 		if len(param) != 7 {
@@ -187,7 +187,7 @@ func TestGetSaveSQL(t *testing.T) {
 		if param[0] != m.Id {
 			t.Fatal("wrong upsert_3 name addr")
 		}
-		if returning[0] != m.CreatedAt {
+		if returning[0] != &m.CreatedAt {
 			t.Fatal("wrong upsert_3 returning addr")
 		}
 	})
@@ -197,7 +197,7 @@ func TestGetSaveSQL(t *testing.T) {
 		iSql := GetSaveSQL(&m)
 		query, param, returning := iSql.SQL()
 		t.Log(query, param, returning)
-		if query != "INSERT INTO test_model (id, name, pages, some_int) VALUES (?, ?, ?, ?) ON CONFLICT (some_int) DO UPDATE SET id = ?, name = ?, pages = ? RETURNING created_at, updated_at, deleted_at;" {
+		if query != "INSERT INTO test_model (id, name, pages, some_int) VALUES (?, ?, ?, ?) ON CONFLICT (some_int) DO UPDATE SET id = ?, name = ?, pages = ?, updated_at = NOW() RETURNING created_at, updated_at, deleted_at;" {
 			t.Fatal("wrong upsert_3 sql")
 		}
 		if len(param) != 7 {
@@ -209,7 +209,7 @@ func TestGetSaveSQL(t *testing.T) {
 		if param[0] != m.Id {
 			t.Fatal("wrong upsert_3 name addr")
 		}
-		if returning[0] != m.CreatedAt {
+		if returning[0] != &m.CreatedAt {
 			t.Fatal("wrong upsert_3 returning addr")
 		}
 	})
@@ -220,7 +220,7 @@ func TestGetSaveSQL(t *testing.T) {
 		iSql := GetSaveSQL(&m)
 		query, param, returning := iSql.SQL()
 		t.Log(query, param, returning)
-		if query != "INSERT INTO test_model (id, complex_id, name, pages, some_int) VALUES (?, ?, ?, ?, ?) ON CONFLICT (id, complex_id) DO UPDATE SET name = ?, pages = ?, some_int = ? RETURNING created_at, updated_at, deleted_at;" {
+		if query != "INSERT INTO test_model (id, complex_id, name, pages, some_int) VALUES (?, ?, ?, ?, ?) ON CONFLICT (id, complex_id) DO UPDATE SET name = ?, pages = ?, some_int = ?, updated_at = NOW() RETURNING created_at, updated_at, deleted_at;" {
 			t.Fatal("wrong upsert_5 sql")
 		}
 		if len(param) != 8 {
@@ -238,7 +238,7 @@ func TestGetSaveSQL(t *testing.T) {
 		if param[7] != m.SomeInt {
 			t.Fatal("wrong upsert_5 SomeInt addr")
 		}
-		if returning[0] != m.CreatedAt {
+		if returning[0] != &m.CreatedAt {
 			t.Fatal("wrong upsert_5 returning CreatedAt addr")
 		}
 	})
@@ -248,7 +248,7 @@ func TestGetSaveSQL(t *testing.T) {
 		iSql := GetSaveSQL(&m)
 		query, param, returning := iSql.SQL()
 		t.Log(query, param, returning)
-		if query != "UPDATE test_model SET name = ?, pages = ?, some_int = ? WHERE (id = ?) RETURNING created_at, updated_at, deleted_at;" {
+		if query != "UPDATE test_model SET name = ?, pages = ?, some_int = ?, updated_at = NOW() WHERE (id = ?) RETURNING created_at, updated_at, deleted_at;" {
 			t.Fatal("wrong update_1 sql")
 		}
 		if len(param) != 4 {
@@ -263,7 +263,7 @@ func TestGetSaveSQL(t *testing.T) {
 		if param[3] != m.Id {
 			t.Fatal("wrong update_1 name addr")
 		}
-		if returning[0] != m.CreatedAt {
+		if returning[0] != &m.CreatedAt {
 			t.Fatal("wrong update_1 returning addr")
 		}
 	})
@@ -273,7 +273,7 @@ func TestGetSaveSQL(t *testing.T) {
 		iSql := GetSaveSQL(&m)
 		query, param, returning := iSql.SQL()
 		t.Log(query, param, returning)
-		if query != "UPDATE test_model SET name = ?, pages = ? WHERE (some_int = ?) RETURNING id, created_at, updated_at, deleted_at;" {
+		if query != "UPDATE test_model SET name = ?, pages = ?, updated_at = NOW() WHERE (some_int = ?) RETURNING id, created_at, updated_at, deleted_at;" {
 			t.Fatal("wrong update_2 sql")
 		}
 		if len(param) != 3 {
@@ -288,7 +288,7 @@ func TestGetSaveSQL(t *testing.T) {
 		if param[2] != m.SomeInt {
 			t.Fatal("wrong update_2 name addr")
 		}
-		if returning[0] != m.Id {
+		if returning[0] != &m.Id {
 			t.Fatal("wrong update_2 returning addr")
 		}
 	})

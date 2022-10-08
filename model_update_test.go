@@ -27,7 +27,7 @@ func TestGetUpdateSQL(t *testing.T) {
 		if len(returning) != 2 {
 			t.Fatal("wrong classic_update returning arg len must be 2")
 		}
-		if returning[0] != m.Id {
+		if returning[0] != &m.Id {
 			t.Fatal("wrong classic_update returning id")
 		}
 	})
@@ -54,7 +54,7 @@ func TestGetUpdateSQL(t *testing.T) {
 		if len(returning) != 3 {
 			t.Fatal("wrong classic_update_1 returning arg len must be 3")
 		}
-		if returning[0] != m.CreatedAt {
+		if returning[0] != &m.CreatedAt {
 			t.Fatal("wrong classic_update_1 returning CreatedAt")
 		}
 	})
@@ -80,7 +80,7 @@ func TestGetUpdateSQL(t *testing.T) {
 		if len(returning) != 4 {
 			t.Fatal("wrong classic_update_2 returning arg len must be 4")
 		}
-		if returning[0] != m.Id {
+		if returning[0] != &m.Id {
 			t.Fatal("wrong classic_update_2 returning id")
 		}
 	})
@@ -116,7 +116,7 @@ func TestGetUpdateSQL(t *testing.T) {
 		if len(returning) != 3 {
 			t.Fatal("wrong classic_update_3 returning arg len must be 3")
 		}
-		if returning[0] != m.CreatedAt {
+		if returning[0] != &m.CreatedAt {
 			t.Fatal("wrong classic_update_3 returning CreatedAt")
 		}
 	})
