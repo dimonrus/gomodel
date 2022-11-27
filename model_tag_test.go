@@ -7,7 +7,8 @@ import (
 func TestParseModelFiledTag(t *testing.T) {
 	t.Run("all_in", func(t *testing.T) {
 		tag := "col~created_at;seq;prk;frk~master.table(id,name);req;unq;cat;ign;"
-		field := ParseModelFiledTag(tag)
+		var field ModelFiledTag
+		ParseModelFiledTag(tag, &field)
 		if field.Column != "created_at" {
 			t.Fatal("Wrong parser column name")
 		}
@@ -38,56 +39,64 @@ func TestParseModelFiledTag(t *testing.T) {
 	})
 	t.Run("empty", func(t *testing.T) {
 		tag := ""
-		field := ParseModelFiledTag(tag)
+		var field ModelFiledTag
+		ParseModelFiledTag(tag, &field)
 		if field.Column != "" {
 			t.Fatal("Wrong parser column name")
 		}
 	})
 	t.Run("wrong_length", func(t *testing.T) {
 		tag := "ca"
-		field := ParseModelFiledTag(tag)
+		var field ModelFiledTag
+		ParseModelFiledTag(tag, &field)
 		if field.Column != "" {
 			t.Fatal("Wrong parser column name")
 		}
 	})
 	t.Run("wrong_tag", func(t *testing.T) {
 		tag := "cac"
-		field := ParseModelFiledTag(tag)
+		var field ModelFiledTag
+		ParseModelFiledTag(tag, &field)
 		if field.Column != "" {
 			t.Fatal("Wrong parser column name")
 		}
 	})
 	t.Run("wrong_frk", func(t *testing.T) {
 		tag := "frk;aaa"
-		field := ParseModelFiledTag(tag)
+		var field ModelFiledTag
+		ParseModelFiledTag(tag, &field)
 		if field.Column != "" {
 			t.Fatal("Wrong parser column name")
 		}
 	})
 	t.Run("wrong_col", func(t *testing.T) {
 		tag := "col;aaa"
-		field := ParseModelFiledTag(tag)
+		var field ModelFiledTag
+		ParseModelFiledTag(tag, &field)
 		if field.Column != "" {
 			t.Fatal("Wrong parser column name")
 		}
 	})
 	t.Run("good_col", func(t *testing.T) {
 		tag := "col~some_name;dat;uat"
-		field := ParseModelFiledTag(tag)
+		var field ModelFiledTag
+		ParseModelFiledTag(tag, &field)
 		if field.Column != "some_name" {
 			t.Fatal("Wrong parser column name")
 		}
 	})
 	t.Run("updated_at", func(t *testing.T) {
 		tag := "col~updated_at;uat;"
-		field := ParseModelFiledTag(tag)
+		var field ModelFiledTag
+		ParseModelFiledTag(tag, &field)
 		if field.IsDeletedAt {
 			t.Fatal("Wrong parser column id deleted at")
 		}
 	})
 	t.Run("uat_dat_arr", func(t *testing.T) {
 		tag := "col~data;uat;arr;dat;"
-		field := ParseModelFiledTag(tag)
+		var field ModelFiledTag
+		ParseModelFiledTag(tag, &field)
 		if !field.IsDeletedAt {
 			t.Fatal("Wrong parser column deleted at")
 		}
@@ -107,15 +116,17 @@ func TestParseModelFiledTag(t *testing.T) {
 func BenchmarkParseModelFiledTag(b *testing.B) {
 	b.Run("all", func(b *testing.B) {
 		tag := "col~created_at;seq;sys;prk;frk~master.table(id,name);req;unq;cat;"
+		var field ModelFiledTag
 		for i := 0; i < b.N; i++ {
-			_ = ParseModelFiledTag(tag)
+			ParseModelFiledTag(tag, &field)
 		}
 		b.ReportAllocs()
 	})
 
 	b.Run("string", func(b *testing.B) {
 		tag := "col~created_at;seq;sys;prk;frk~master.table(id,name);req;unq;cat;"
-		field := ParseModelFiledTag(tag)
+		var field ModelFiledTag
+		ParseModelFiledTag(tag, &field)
 		for i := 0; i < b.N; i++ {
 			_ = field.String()
 		}

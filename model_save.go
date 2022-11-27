@@ -24,10 +24,12 @@ func GetSaveSQL(model IModel) gosql.ISQL {
 	var conflict = gosql.NewConflict().Action(gosql.ConflictActionUpdate)
 	var insert, update, upsert, hasPrimaryKey bool
 	var result gosql.ISQL
+	var tField ModelFiledTag
 
 	for i := 0; i < ve.NumField(); i++ {
 		field := ve.Field(i)
-		tField := ParseModelFiledTag(te.Field(i).Tag.Get("db"))
+		tField.Clear()
+		ParseModelFiledTag(te.Field(i).Tag.Get("db"), &tField)
 		if tField.IsPrimaryKey {
 			hasPrimaryKey = true
 			if !field.IsNil() {
@@ -157,9 +159,10 @@ func getSaveScenario(model IModel) (insert, update, upsert bool) {
 	te := reflect.TypeOf(model).Elem()
 
 	var hasPrimaryKey bool
+	var tField ModelFiledTag
 	for i := 0; i < ve.NumField(); i++ {
 		field := ve.Field(i)
-		tField := ParseModelFiledTag(te.Field(i).Tag.Get("db"))
+		ParseModelFiledTag(te.Field(i).Tag.Get("db"), &tField)
 		if tField.IsPrimaryKey {
 			hasPrimaryKey = true
 			if !field.IsNil() {
@@ -192,6 +195,7 @@ func getSaveScenario(model IModel) (insert, update, upsert bool) {
 				}
 			}
 		}
+		tField.Clear()
 	}
 	return
 }

@@ -71,8 +71,24 @@ type ModelFiledTag struct {
 	Value any
 }
 
+// Clear tags
+func (t *ModelFiledTag) Clear() {
+	t.Column = ""
+	t.ForeignKey = ""
+	t.IsSequence = false
+	t.IsPrimaryKey = false
+	t.IsRequired = false
+	t.IsUnique = false
+	t.IsCreatedAt = false
+	t.IsUpdatedAt = false
+	t.IsDeletedAt = false
+	t.IsIgnored = false
+	t.IsArray = false
+	t.Value = nil
+}
+
 // Prepare string tag
-func (t ModelFiledTag) String() string {
+func (t *ModelFiledTag) String() string {
 	b := strings.Builder{}
 	if t.Column != "" {
 		b.WriteString("col~" + t.Column + ";")
@@ -113,7 +129,7 @@ func (t ModelFiledTag) String() string {
 // ParseModelFiledTag parse validation tag for rule and arguments
 // Example
 // db:"col~created_at;seq;sys;prk;frk~master.table(id,name);req;unq'"
-func ParseModelFiledTag(tag string) (field ModelFiledTag) {
+func ParseModelFiledTag(tag string, field *ModelFiledTag) {
 	if tag == "" || len(tag) < 3 {
 		return
 	}

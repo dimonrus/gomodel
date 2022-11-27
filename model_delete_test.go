@@ -2,7 +2,6 @@ package gomodel
 
 import (
 	"testing"
-	"time"
 )
 
 func TestGetDeleteSQL(t *testing.T) {
@@ -15,23 +14,20 @@ func TestGetDeleteSQL(t *testing.T) {
 		}
 		query, params, returning := iSql.SQL()
 		t.Log(query)
-		if query != `UPDATE test_model SET updated_at = NOW(), deleted_at = ? WHERE (id = ?) RETURNING updated_at;` {
+		if query != `UPDATE test_model SET updated_at = NOW(), deleted_at = NOW() WHERE (id = ?) RETURNING updated_at, deleted_at;` {
 			t.Fatal("soft wrong query")
 		}
-		if len(params) != 2 {
-			t.Fatal("soft must have 3 param")
+		if len(params) != 1 {
+			t.Fatal("soft must have 1 param")
 		}
-		if *(params[1].(**int)) != model.Id {
+		if *(params[0].(**int)) != model.Id {
 			t.Fatal("soft wrong param ref")
 		}
-		if **(params[1].(**int)) != *model.Id {
+		if **(params[0].(**int)) != *model.Id {
 			t.Fatal("soft wrong param value")
 		}
-		if **(params[0].(**time.Time)) != *model.DeletedAt {
-			t.Fatal("soft wrong param value")
-		}
-		if len(returning) != 1 {
-			t.Fatal("soft must have 1 returning")
+		if len(returning) != 2 {
+			t.Fatal("soft must have 2 returning")
 		}
 	})
 	t.Run("soft_unique", func(t *testing.T) {
@@ -43,23 +39,20 @@ func TestGetDeleteSQL(t *testing.T) {
 		}
 		query, params, returning := iSql.SQL()
 		t.Log(query)
-		if query != `UPDATE test_model SET updated_at = NOW(), deleted_at = ? WHERE (some_int = ?) RETURNING updated_at;` {
+		if query != `UPDATE test_model SET updated_at = NOW(), deleted_at = NOW() WHERE (some_int = ?) RETURNING updated_at, deleted_at;` {
 			t.Fatal("soft wrong query")
 		}
-		if len(params) != 2 {
+		if len(params) != 1 {
 			t.Fatal("soft must have 2 param")
 		}
-		if *(params[1].(**int)) != model.SomeInt {
+		if *(params[0].(**int)) != model.SomeInt {
 			t.Fatal("soft wrong param ref")
 		}
-		if **(params[1].(**int)) != *model.SomeInt {
+		if **(params[0].(**int)) != *model.SomeInt {
 			t.Fatal("soft wrong param value")
 		}
-		if **(params[0].(**time.Time)) != *model.DeletedAt {
-			t.Fatal("soft wrong param value")
-		}
-		if len(returning) != 1 {
-			t.Fatal("soft must have 1 returning")
+		if len(returning) != 2 {
+			t.Fatal("soft must have 2 returning")
 		}
 	})
 	t.Run("classic", func(t *testing.T) {

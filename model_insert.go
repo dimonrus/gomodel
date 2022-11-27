@@ -20,6 +20,7 @@ func GetInsertSQL(model IModel, fields ...any) gosql.ISQL {
 	var conflict = gosql.NewConflict()
 	var hasPrimaryKey bool
 	var isConflict bool
+	var tField ModelFiledTag
 
 	// use when fields directly passed in args
 	var direct = len(fields) > 0
@@ -31,7 +32,8 @@ func GetInsertSQL(model IModel, fields ...any) gosql.ISQL {
 	}
 	for j := 0; j < me.NumField(); j++ {
 		field := me.Field(j)
-		tField := ParseModelFiledTag(te.Field(j).Tag.Get("db"))
+		tField.Clear()
+		ParseModelFiledTag(te.Field(j).Tag.Get("db"), &tField)
 		for i := range values {
 			fv := reflect.ValueOf(values[i])
 			if fv.Kind() != reflect.Ptr {

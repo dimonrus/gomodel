@@ -47,10 +47,9 @@ func PrepareMetaModel(model IModel) *MetaModel {
 		Fields:    make([]ModelFiledTag, ve.NumField()),
 	}
 	for i := 0; i < ve.NumField(); i++ {
-		tField := ParseModelFiledTag(te.Field(i).Tag.Get("db"))
-		if !tField.IsIgnored {
-			tField.Value = ve.Field(i).Addr().Interface()
-			meta.Fields[k] = tField
+		ParseModelFiledTag(te.Field(i).Tag.Get("db"), &meta.Fields[i])
+		if !meta.Fields[i].IsIgnored {
+			meta.Fields[i].Value = ve.Field(i).Addr().Interface()
 			k++
 		}
 	}
@@ -86,8 +85,9 @@ func GetColumns(model IModel, field ...any) []string {
 			continue
 		}
 		for i := 0; i < ve.NumField(); i++ {
+			tField.Clear()
 			if ve.Field(i).Addr().Pointer() == cte.Elem().Addr().Pointer() {
-				tField = ParseModelFiledTag(te.Field(i).Tag.Get("db"))
+				ParseModelFiledTag(te.Field(i).Tag.Get("db"), &tField)
 				columns[k] = tField.Column
 				k++
 			}
@@ -105,8 +105,10 @@ func extract(model IModel) (table string, columns []string, values []any) {
 		columns = make([]string, ve.NumField())
 		values = make([]any, ve.NumField())
 		var k int
+		var tField ModelFiledTag
 		for i := 0; i < ve.NumField(); i++ {
-			tField := ParseModelFiledTag(te.Field(i).Tag.Get("db"))
+			tField.Clear()
+			ParseModelFiledTag(te.Field(i).Tag.Get("db"), &tField)
 			if !tField.IsIgnored {
 				columns[k] = tField.Column
 				values[k] = ve.Interface()
@@ -126,8 +128,10 @@ func GetValues(model IModel, columns ...string) (values []any) {
 	modelValues := model.Values()
 	values = make([]any, len(columns))
 	var j int
+	var tField ModelFiledTag
 	for i := 0; i < len(modelValues); i++ {
-		tField := ParseModelFiledTag(te.Field(i).Tag.Get("db"))
+		tField.Clear()
+		ParseModelFiledTag(te.Field(i).Tag.Get("db"), &tField)
 		if gohelp.ExistsInArray(tField.Column, columns) {
 			values[j] = modelValues[i]
 			j++
@@ -143,8 +147,13 @@ func Do(q godb.Queryer, isql gosql.ISQL) (e porterr.IError) {
 		e = porterr.New(porterr.PortErrorLoad, "ISQL is empty. Check your logic")
 		return
 	}
+	var err error
 	query, params, returning := isql.SQL()
-	err := q.QueryRow(query, params...).Scan(returning...)
+	if len(returning) > 0 {
+		err = q.QueryRow(query, params...).Scan(returning...)
+	} else {
+		_, err = q.Exec(query, params...)
+	}
 	if err != nil {
 		if err == sql.ErrNoRows {
 			e = porterr.New(porterr.PortErrorSearch, "No record found. Check params or model already deleted").HTTP(http.StatusNotFound)

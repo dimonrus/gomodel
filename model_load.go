@@ -16,9 +16,11 @@ func GetLoadSQL(model IModel) gosql.ISQL {
 	selectSql := gosql.NewSelect()
 	selectSql.From(model.Table())
 	cond := gosql.NewSqlCondition(gosql.ConditionOperatorAnd)
+	var tField ModelFiledTag
 	for i := 0; i < ve.NumField(); i++ {
 		field := ve.Field(i)
-		tField := ParseModelFiledTag(te.Field(i).Tag.Get("db"))
+		tField.Clear()
+		ParseModelFiledTag(te.Field(i).Tag.Get("db"), &tField)
 		if tField.IsIgnored || tField.Column == "" {
 			continue
 		}

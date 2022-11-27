@@ -22,15 +22,17 @@ func GetUpdateSQL(model IModel, fields ...any) gosql.ISQL {
 	var hasPrimaryKey bool
 	var condition = gosql.NewSqlCondition(gosql.ConditionOperatorAnd)
 	var update = gosql.NewUpdate()
+	var tField ModelFiledTag
 	for i := 0; i < ve.NumField(); i++ {
 		field := ve.Field(i)
 		for _, v := range fields {
+			tField.Clear()
 			cte := reflect.ValueOf(v)
 			if cte.Kind() != reflect.Ptr {
 				return nil
 			}
 			if ve.Field(i).Addr().Pointer() == cte.Elem().Addr().Pointer() {
-				tField := ParseModelFiledTag(te.Field(i).Tag.Get("db"))
+				ParseModelFiledTag(te.Field(i).Tag.Get("db"), &tField)
 				if tField.IsPrimaryKey {
 					hasPrimaryKey = true
 					if !field.IsNil() {
