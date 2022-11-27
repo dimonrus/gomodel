@@ -294,6 +294,12 @@ func TestGetSaveSQL(t *testing.T) {
 	})
 }
 
+// goos: darwin
+// goarch: amd64
+// pkg: github.com/dimonrus/gomodel
+// cpu: Intel(R) Core(TM) i5-8279U CPU @ 2.40GHz
+// BenchmarkGetSaveSQL
+// BenchmarkGetSaveSQL-8   	  304465	      3860 ns/op	    1584 B/op	      41 allocs/op
 func BenchmarkGetSaveSQL(b *testing.B) {
 	m := InsertModel1{Name: &ACMName, SomeInt: &ACMSomeInt}
 	for i := 0; i < b.N; i++ {

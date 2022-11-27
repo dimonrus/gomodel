@@ -41,20 +41,23 @@ func PrepareMetaModel(model IModel) *MetaModel {
 	}
 	ve = ve.Elem()
 	te := reflect.TypeOf(model).Elem()
-	var k int
-	meta := &MetaModel{
-		TableName: model.Table(),
-		Fields:    make([]ModelFiledTag, ve.NumField()),
+	table := model.Table()
+	fields := make([]ModelFiledTag, 0, ve.NumField())
+	meta := MetaModel{
+		TableName: table,
+		Fields:    fields,
 	}
 	for i := 0; i < ve.NumField(); i++ {
-		ParseModelFiledTag(te.Field(i).Tag.Get("db"), &meta.Fields[i])
-		if !meta.Fields[i].IsIgnored {
-			meta.Fields[i].Value = ve.Field(i).Addr().Interface()
-			k++
+		if tag, ok := te.Field(i).Tag.Lookup("db"); ok {
+			var tField ModelFiledTag
+			ParseModelFiledTag(tag, &tField)
+			if !tField.IsIgnored {
+				tField.Value = ve.Field(i).Addr().Interface()
+				meta.Fields = append(meta.Fields, tField)
+			}
 		}
 	}
-	meta.Fields = meta.Fields[:k]
-	return meta
+	return &meta
 }
 
 // GetColumn model column in table
