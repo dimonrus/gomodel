@@ -1,7 +1,6 @@
 package gomodel
 
 import (
-	"github.com/dimonrus/gohelp"
 	"github.com/dimonrus/gosql"
 	"github.com/lib/pq"
 	"reflect"
@@ -108,7 +107,7 @@ func GetInsertSQL(model IModel, fields ...any) gosql.ISQL {
 		}
 	}
 	if !insert.IsEmpty() {
-		insert.Into(gohelp.ToUnderscore(te.Name()))
+		insert.Into(model.Table())
 		if isConflict {
 			insert.Conflict().Object(conflict.GetObject())
 			insert.Conflict().Action(gosql.ConflictActionUpdate)

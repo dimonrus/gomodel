@@ -1,8 +1,45 @@
 package gomodel
 
 import (
+	"fmt"
+	"github.com/dimonrus/gocli"
+	"github.com/dimonrus/godb/v2"
 	"testing"
 )
+
+type connection struct{}
+
+func (c *connection) String() string {
+	return fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
+		"localhost", 5432, "gomodel", "gomodel", "gomodel")
+}
+func (c *connection) GetDbType() string       { return "postgres" }
+func (c *connection) GetMaxConnection() int   { return 200 }
+func (c *connection) GetMaxIdleConns() int    { return 15 }
+func (c *connection) GetConnMaxLifetime() int { return 50 }
+
+func TestDBO_InitError(t *testing.T) {
+	_, err := godb.DBO{
+		Options: godb.Options{
+			Debug:  true,
+			Logger: gocli.NewLogger(gocli.LoggerConfig{}),
+		},
+		Connection: &connection{},
+	}.Init()
+	if err == nil {
+		t.Fatal("must be an error case")
+	}
+}
+
+func initDb() (*godb.DBO, error) {
+	return godb.DBO{
+		Options: godb.Options{
+			Debug:  true,
+			Logger: gocli.NewLogger(gocli.LoggerConfig{}),
+		},
+		Connection: &connection{},
+	}.Init()
+}
 
 func TestMakeModel(t *testing.T) {
 	db, err := initDb()

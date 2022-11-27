@@ -10,7 +10,7 @@ func TestGetInsertSQL(t *testing.T) {
 		iSql := GetInsertSQL(&m)
 		query, param, returning := iSql.SQL()
 		t.Log(query, param, returning)
-		if query != "INSERT INTO insert_model1 (name, pages, some_int) VALUES (?, ?, ?) RETURNING id, created_at, updated_at, deleted_at;" {
+		if query != "INSERT INTO test_model (name, pages, some_int) VALUES (?, ?, ?) RETURNING id, created_at, updated_at, deleted_at;" {
 			t.Fatal("wrong insert_1 sql")
 		}
 		if len(param) != 3 {
@@ -37,7 +37,7 @@ func TestGetInsertSQL(t *testing.T) {
 		iSql := GetInsertSQL(&m)
 		query, param, returning := iSql.SQL()
 		t.Log(query, param, returning)
-		if query != "INSERT INTO insert_model1 (name, pages, some_int) VALUES (?, ?, ?) RETURNING id, created_at, updated_at, deleted_at;" {
+		if query != "INSERT INTO test_model (name, pages, some_int) VALUES (?, ?, ?) RETURNING id, created_at, updated_at, deleted_at;" {
 			t.Fatal("wrong insert_1 sql")
 		}
 		if len(param) != 3 {
@@ -64,7 +64,7 @@ func TestGetInsertSQL(t *testing.T) {
 		iSql := GetInsertSQL(&m, &m.Name)
 		query, param, returning := iSql.SQL()
 		t.Log(query, param, returning)
-		if query != "INSERT INTO insert_model1 (name) VALUES (?);" {
+		if query != "INSERT INTO test_model (name) VALUES (?);" {
 			t.Fatal("wrong insert_1_manual sql")
 		}
 		if len(param) != 1 {
@@ -79,7 +79,7 @@ func TestGetInsertSQL(t *testing.T) {
 		iSql := GetInsertSQL(&m)
 		query, param, returning := iSql.SQL()
 		t.Log(query, param, returning)
-		if query != "INSERT INTO insert_model2 (name, pages, some_int) VALUES (?, ?, ?) ON CONFLICT (some_int) DO UPDATE SET name = ?, pages = ? RETURNING id, created_at, updated_at, deleted_at;" {
+		if query != "INSERT INTO test_model (name, pages, some_int) VALUES (?, ?, ?) ON CONFLICT (some_int) DO UPDATE SET name = ?, pages = ? RETURNING id, created_at, updated_at, deleted_at;" {
 			t.Fatal("wrong insert_2 sql")
 		}
 		if len(param) != 5 {
@@ -101,12 +101,34 @@ func TestGetInsertSQL(t *testing.T) {
 			t.Fatal("insert_2 wrong returning[3] param")
 		}
 	})
+	t.Run("insert_3", func(t *testing.T) {
+		id := "some-12312"
+		m := InsertModel3{Id: &id, Name: &ACMName, SomeInt: &ACMSomeInt}
+		iSql := GetInsertSQL(&m)
+		query, param, returning := iSql.SQL()
+		t.Log(query, param, returning)
+		if query != "INSERT INTO test_model (id, name, pages, some_int) VALUES (?, ?, ?, ?) ON CONFLICT (id) DO UPDATE SET name = ?, pages = ?, some_int = ?;" {
+			t.Fatal("wrong insert_3 sql")
+		}
+		if len(param) != 7 {
+			t.Fatal("insert_3 wrong param len")
+		}
+		if *param[0].(*string) != id {
+			t.Fatal("insert_3 wrong param[0] value")
+		}
+		if *param[3].(*int) != ACMSomeInt {
+			t.Fatal("insert_3 wrong param[2] value")
+		}
+		if len(returning) != 0 {
+			t.Fatal("insert_3 wrong returning len")
+		}
+	})
 	t.Run("upsert_2", func(t *testing.T) {
 		m := UpsertModel2{Id: &ACMId, Name: &ACMName}
 		iSql := GetInsertSQL(&m)
 		query, param, returning := iSql.SQL()
 		t.Log(query, param, returning)
-		if query != "INSERT INTO upsert_model2 (id, name, pages, some_int) VALUES (?, ?, ?, ?) ON CONFLICT (id) DO UPDATE SET name = ?, pages = ?, some_int = ? RETURNING created_at, updated_at, deleted_at;" {
+		if query != "INSERT INTO test_model (id, name, pages, some_int) VALUES (?, ?, ?, ?) ON CONFLICT (id) DO UPDATE SET name = ?, pages = ?, some_int = ? RETURNING created_at, updated_at, deleted_at;" {
 			t.Fatal("wrong upsert_2 sql")
 		}
 		if len(param) != 7 {
@@ -133,7 +155,7 @@ func TestGetInsertSQL(t *testing.T) {
 		iSql := GetInsertSQL(&m)
 		query, param, returning := iSql.SQL()
 		t.Log(query, param, returning)
-		if query != "INSERT INTO upsert_model4 (id, name, pages, some_int) VALUES (?, ?, ?, ?) ON CONFLICT (some_int) DO UPDATE SET id = ?, name = ?, pages = ? RETURNING created_at, updated_at, deleted_at;" {
+		if query != "INSERT INTO test_model (id, name, pages, some_int) VALUES (?, ?, ?, ?) ON CONFLICT (some_int) DO UPDATE SET id = ?, name = ?, pages = ? RETURNING created_at, updated_at, deleted_at;" {
 			t.Fatal("wrong upsert_2 sql")
 		}
 		if len(param) != 7 {

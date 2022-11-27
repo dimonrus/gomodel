@@ -88,8 +88,8 @@ func GetColumns(model IModel, field ...any) []string {
 			continue
 		}
 		for i := 0; i < ve.NumField(); i++ {
-			tField.Clear()
 			if ve.Field(i).Addr().Pointer() == cte.Elem().Addr().Pointer() {
+				tField.Column = ""
 				ParseModelFiledTag(te.Field(i).Tag.Get("db"), &tField)
 				columns[k] = tField.Column
 				k++
@@ -104,17 +104,16 @@ func extract(model IModel) (table string, columns []string, values []any) {
 	if model != nil {
 		ve := reflect.ValueOf(model).Elem()
 		te := reflect.TypeOf(model).Elem()
-		table = gohelp.ToUnderscore(te.Name())
+		table = model.Table()
 		columns = make([]string, ve.NumField())
 		values = make([]any, ve.NumField())
 		var k int
 		var tField ModelFiledTag
 		for i := 0; i < ve.NumField(); i++ {
-			tField.Clear()
 			ParseModelFiledTag(te.Field(i).Tag.Get("db"), &tField)
 			if !tField.IsIgnored {
 				columns[k] = tField.Column
-				values[k] = ve.Interface()
+				values[k] = ve.Addr().Interface()
 				k++
 			}
 		}

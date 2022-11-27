@@ -23,6 +23,18 @@ func TestGetLoadSQL(t *testing.T) {
 			t.Fatal("wrong sql classic_unique")
 		}
 	})
+
+	t.Run("classic_string_prk", func(t *testing.T) {
+		someStringId := "sdsdf-12312"
+		m := InsertModel3{Id: &someStringId}
+		q := GetLoadSQL(&m)
+		query, _, _ := q.SQL()
+		t.Log(query)
+		if query != "SELECT id, name, pages, some_int FROM test_model WHERE (id = ?)" {
+			t.Fatal("wrong sql classic_unique")
+		}
+	})
+
 	t.Run("classic_unique_2", func(t *testing.T) {
 		m := UpdateModel2{SomeInt: &ACMSomeInt}
 		q := GetLoadSQL(&m)

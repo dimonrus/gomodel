@@ -60,6 +60,26 @@ func (m *InsertModel2) Values() []any {
 	return []any{&m.Id, &m.Name, pq.Array(&m.Pages), &m.SomeInt, &m.CreatedAt, &m.UpdatedAt, &m.DeletedAt}
 }
 
+type InsertModel3 struct {
+	Id      *string  `json:"id" db:"col~id;prk;req;"`
+	Name    *string  `json:"name" db:"col~name;req;"`
+	Pages   []string `json:"pages" db:"col~pages;"`
+	SomeInt *int     `json:"someInt" db:"col~some_int;unq;"`
+}
+
+// Model table name
+func (m *InsertModel3) Table() string { return "test_model" }
+
+// Model columns
+func (m *InsertModel3) Columns() []string {
+	return []string{"id", "name", "pages", "some_int"}
+}
+
+// Model values
+func (m *InsertModel3) Values() []any {
+	return []any{&m.Id, &m.Name, pq.Array(&m.Pages), &m.SomeInt}
+}
+
 type UpsertModel1 struct {
 	Id        *int       `json:"id" db:"col~id;req;seq;"`
 	Name      *string    `json:"name" db:"col~name;req;"`
