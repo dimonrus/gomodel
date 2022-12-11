@@ -61,7 +61,7 @@ func TestGenerateCrud(t *testing.T) {
 		t.Fatal(err)
 	}
 	crud := NewCRUDGenerator("app/core", "app/client", "app/io/web/api", "github.com/dimonrus/gomodel")
-	err = crud.Generate(db, "public", "reset_password", "v2", 31)
+	err = crud.Generate(db, "public", "dictionary", "v2", 31)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -92,5 +92,13 @@ func TestCreateDictionaryTable(t *testing.T) {
 	t.Log(query)
 	if query != `CREATE TABLE IF NOT EXISTS dictionary (id INT NOT NULL PRIMARY KEY, type TEXT NOT NULL, code TEXT NOT NULL, label TEXT, created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT localtimestamp, updated_at TIMESTAMP WITH TIME ZONE, deleted_at TIMESTAMP WITH TIME ZONE);COMMENT ON COLUMN dictionary.id IS 'Dictionary row identifier';COMMENT ON COLUMN dictionary.type IS 'Dictionary row type';COMMENT ON COLUMN dictionary.code IS 'Dictionary row code';COMMENT ON COLUMN dictionary.label IS 'Dictionary row value label';COMMENT ON COLUMN dictionary.created_at IS 'Dictionary row created time';COMMENT ON COLUMN dictionary.updated_at IS 'Dictionary row updated time';COMMENT ON COLUMN dictionary.deleted_at IS 'Dictionary row deleted time';CREATE INDEX IF NOT EXISTS dictionary_type_idx ON dictionary (type);` {
 		t.Fatal("wrong dictionary query")
+	}
+	db, err := initDb()
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = db.Exec(query)
+	if err != nil {
+		t.Fatal(err)
 	}
 }

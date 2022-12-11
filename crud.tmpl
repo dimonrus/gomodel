@@ -25,7 +25,7 @@ func (m *{{ .Model }}) Load(q godb.Queryer) porterr.IError {
 // Save {{ .Model }}
 func (m *{{ .Model }}) Save(q godb.Queryer) porterr.IError {
     if m.{{ .Model }} != nil {
-        e := porterr.ValidateStruct(m.{{ .Model }})
+        e := v.ValidateStruct(m.{{ .Model }})
         if e != nil {
             return e
         }

@@ -170,6 +170,7 @@ func (c CRUDGenerator) MakeCoreCrud(logger gocli.Logger, schema, table string) (
 		`"github.com/dimonrus/porterr"`,
 		`"github.com/dimonrus/gorest"`,
 		`"github.com/dimonrus/godb/v2"`,
+		`"github.com/dimonrus/v"`,
 		fmt.Sprintf(`"%s/%s"`, c.ProjectPath, c.ClientPath),
 	}
 	// Parse template to file
