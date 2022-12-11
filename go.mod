@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/dimonrus/gocli v0.10.1
-	github.com/dimonrus/godb/v2 v2.1.0
+	github.com/dimonrus/godb/v2 v2.1.1
 	github.com/dimonrus/gohelp v1.1.1
 	github.com/dimonrus/gosql v0.6.3
 	github.com/dimonrus/porterr v1.13.1
