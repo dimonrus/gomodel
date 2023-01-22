@@ -21,21 +21,37 @@ var DefaultDictionaryTemplate string
 // DictionaryItems dictionary collection items
 type DictionaryItems []*DictionaryModel
 
+// DictionaryModel model
 type DictionaryModel struct {
 	// Dictionary row identifier
-	Id *int32 `json:"id"`
+	Id *int32 `db:"col~id;prk;req;unq;" json:"id" valid:"required"`
 	// Dictionary row type
-	Type *string `json:"type"`
+	Type *string `db:"col~type;req;" json:"type" valid:"required"`
 	// Dictionary row code
-	Code *string `json:"code"`
+	Code *string `db:"col~code;req;" json:"code" valid:"required"`
 	// Dictionary row value label
-	Label *string `json:"label"`
+	Label *string `db:"col~label;" json:"label"`
 	// Dictionary row created time
-	CreatedAt *time.Time `json:"createdAt"`
+	CreatedAt *time.Time `db:"col~created_at;req;cat;" json:"createdAt"`
 	// Dictionary row updated time
-	UpdatedAt *time.Time `json:"updatedAt"`
+	UpdatedAt *time.Time `db:"col~updated_at;uat;" json:"updatedAt"`
 	// Dictionary row deleted time
-	DeletedAt *time.Time `json:"deletedAt"`
+	DeletedAt *time.Time `db:"col~deleted_at;dat;" json:"deletedAt"`
+}
+
+// Table Model columns
+func (m *DictionaryModel) Table() string {
+	return "dictionary"
+}
+
+// Columns Model columns
+func (m *DictionaryModel) Columns() []string {
+	return []string{"id", "type", "code", "label", "created_at", "updated_at", "deleted_at"}
+}
+
+// Values Model values
+func (m *DictionaryModel) Values() (values []interface{}) {
+	return []interface{}{&m.Id, &m.Type, &m.Code, &m.Label, &m.CreatedAt, &m.UpdatedAt, &m.DeletedAt}
 }
 
 // HasType check if type in collection
@@ -75,21 +91,6 @@ func (i DictionaryItems) GetTypeEnum(dictionaryType string) string {
 		}
 	}
 	return result
-}
-
-// Model columns
-func (m *DictionaryModel) Table() string {
-	return "dictionary"
-}
-
-// Model columns
-func (m *DictionaryModel) Columns() []string {
-	return []string{"id", "type", "code", "label", "created_at", "updated_at", "deleted_at"}
-}
-
-// Model values
-func (m *DictionaryModel) Values() (values []interface{}) {
-	return []interface{}{&m.Id, &m.Type, &m.Code, &m.Label, &m.CreatedAt, &m.UpdatedAt, &m.DeletedAt}
 }
 
 // Get all sql
