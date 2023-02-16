@@ -82,7 +82,7 @@ func (c Column) PrepareValidTag(dictionary DictionaryItems) string {
 		valid = []string{"required"}
 	}
 	if c.ForeignTable != nil && *c.ForeignTable == "dictionary" {
-		if dType, ok := dictionary.IsDictionaryColumn(c.Name); ok {
+		if dType, ok := dictionary.IsDictionaryColumn(c.Table + "_" + c.Name); ok {
 			enum := dictionary.GetTypeEnum(dType)
 			if len(enum) > 0 {
 				valid = append(valid, "enum~"+enum)
