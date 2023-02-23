@@ -31,6 +31,8 @@ type DictionaryModel struct {
 	Code *string `db:"col~code;req;" json:"code" valid:"required"`
 	// Dictionary row value label
 	Label *string `db:"col~label;" json:"label"`
+	// Dictionary row system value
+	IsSystem *bool `db:"col~is_system;" json:"isSystem"`
 	// Dictionary row created time
 	CreatedAt *time.Time `db:"col~created_at;req;cat;" json:"createdAt"`
 	// Dictionary row updated time
@@ -46,12 +48,12 @@ func (m *DictionaryModel) Table() string {
 
 // Columns Model columns
 func (m *DictionaryModel) Columns() []string {
-	return []string{"id", "type", "code", "label", "created_at", "updated_at", "deleted_at"}
+	return []string{"id", "type", "code", "label", "is_system", "created_at", "updated_at", "deleted_at"}
 }
 
 // Values Model values
 func (m *DictionaryModel) Values() (values []interface{}) {
-	return []interface{}{&m.Id, &m.Type, &m.Code, &m.Label, &m.CreatedAt, &m.UpdatedAt, &m.DeletedAt}
+	return []interface{}{&m.Id, &m.Type, &m.Code, &m.Label, &m.IsSystem, &m.CreatedAt, &m.UpdatedAt, &m.DeletedAt}
 }
 
 // HasType check if type in collection
@@ -102,17 +104,19 @@ func getDictionarySQList() gosql.SQList {
 	dict.AddColumn("type").Type("TEXT").Constraint().NotNull()
 	dict.AddColumn("code").Type("TEXT").Constraint().NotNull()
 	dict.AddColumn("label").Type("TEXT")
+	dict.AddColumn("is_system").Type("BOOL")
 
 	gosql.TableModeler{TimestampModifier, SoftModifier}.Prepare(dict)
 
 	sqList = append(sqList, dict,
-		gosql.Comment().Column("dictionary.id", "Dictionary row identifier"),
-		gosql.Comment().Column("dictionary.type", "Dictionary row type"),
-		gosql.Comment().Column("dictionary.code", "Dictionary row code"),
-		gosql.Comment().Column("dictionary.label", "Dictionary row value label"),
-		gosql.Comment().Column("dictionary.created_at", "Dictionary row created time"),
-		gosql.Comment().Column("dictionary.updated_at", "Dictionary row updated time"),
-		gosql.Comment().Column("dictionary.deleted_at", "Dictionary row deleted time"),
+		gosql.NewComment().Column("dictionary.id", "Dictionary row identifier"),
+		gosql.NewComment().Column("dictionary.type", "Dictionary row type"),
+		gosql.NewComment().Column("dictionary.code", "Dictionary row code"),
+		gosql.NewComment().Column("dictionary.label", "Dictionary row value label"),
+		gosql.NewComment().Column("dictionary.is_system", "Dictionary row system value"),
+		gosql.NewComment().Column("dictionary.created_at", "Dictionary row created time"),
+		gosql.NewComment().Column("dictionary.updated_at", "Dictionary row updated time"),
+		gosql.NewComment().Column("dictionary.deleted_at", "Dictionary row deleted time"),
 		gosql.CreateIndex("dictionary", "type").IfNotExists().AutoName())
 
 	return sqList
