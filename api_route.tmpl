@@ -20,5 +20,5 @@ func Init(apiRoute *mux.Router, middleware ...mux.MiddlewareFunc) {
     {{ if .Search }}// Search
     {{ .Model }}Route.HandleFunc("/list", Search{{ .Model }}).Methods(http.MethodPost){{ end }}
     // Use middleware
-    apiRoute.Use(middleware...)
+    {{ .Model }}Route.Use(middleware...)
 }
