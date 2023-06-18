@@ -48,11 +48,10 @@ func TestGetLoadSQL(t *testing.T) {
 }
 
 // goos: darwin
-// goarch: amd64
+// goarch: arm64
 // pkg: github.com/dimonrus/gomodel
-// cpu: Intel(R) Core(TM) i5-8279U CPU @ 2.40GHz
 // BenchmarkGetLoadSQL
-// BenchmarkGetLoadSQL-8   	  390850	      2741 ns/op	    1024 B/op	      23 allocs/op
+// BenchmarkGetLoadSQL-12    	  959214	      1227 ns/op	    1216 B/op	      22 allocs/op
 func BenchmarkGetLoadSQL(b *testing.B) {
 	m := &InsertModel1{Id: &ACMId}
 	for i := 0; i < b.N; i++ {

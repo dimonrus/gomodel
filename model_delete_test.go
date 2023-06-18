@@ -108,6 +108,12 @@ func TestGetDeleteSQL(t *testing.T) {
 }
 
 func BenchmarkName(b *testing.B) {
+	// goos: darwin
+	// goarch: arm64
+	// pkg: github.com/dimonrus/gomodel
+	// BenchmarkName
+	// BenchmarkName/soft
+	// BenchmarkName/soft-12         	 1803002	       660.9 ns/op	     736 B/op	      10 allocs/op
 	b.Run("soft", func(b *testing.B) {
 		model := NewTestModel()
 		model.Id = &ACMId
@@ -116,6 +122,12 @@ func BenchmarkName(b *testing.B) {
 		}
 		b.ReportAllocs()
 	})
+	// goos: darwin
+	// goarch: arm64
+	// pkg: github.com/dimonrus/gomodel
+	// BenchmarkName
+	// BenchmarkName/classic
+	// BenchmarkName/classic-12         	 1048124	      1127 ns/op	    1096 B/op	      20 allocs/op
 	b.Run("classic", func(b *testing.B) {
 		model := &InsertModel1{}
 		model.Id = &ACMId

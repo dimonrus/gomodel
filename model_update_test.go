@@ -122,6 +122,11 @@ func TestGetUpdateSQL(t *testing.T) {
 	})
 }
 
+// goos: darwin
+// goarch: arm64
+// pkg: github.com/dimonrus/gomodel
+// BenchmarkGetUpdate
+// BenchmarkGetUpdate-12    	 1488288	       796.1 ns/op	     688 B/op	      10 allocs/op
 func BenchmarkGetUpdate(b *testing.B) {
 	m := NewTestModel()
 	for i := 0; i < b.N; i++ {

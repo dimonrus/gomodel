@@ -179,6 +179,12 @@ func TestGetInsertSQL(t *testing.T) {
 	})
 }
 
+// goos: darwin
+// goarch: arm64
+// pkg: github.com/dimonrus/gomodel
+// BenchmarkGetInsertSQL
+// BenchmarkGetInsertSQL/insert_sql
+// BenchmarkGetInsertSQL/insert_sql-12         	  385683	      2924 ns/op	    1288 B/op	      33 allocs/op
 func BenchmarkGetInsertSQL(b *testing.B) {
 	b.Run("insert_sql", func(b *testing.B) {
 		m := InsertModel1{Name: &ACMName, SomeInt: &ACMSomeInt}
