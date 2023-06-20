@@ -4,8 +4,8 @@ github.com/dimonrus/godb/v2 v2.4.1 h1:p0v4jkzRqUuN8Uvat1FE/N2kJAqzbIa6SREoi1+Cvl
 github.com/dimonrus/godb/v2 v2.4.1/go.mod h1:D5AWRD3gm+vEekMGgZ2ogqzt0TSz0eUOQ5JYi5Yq/RQ=
 github.com/dimonrus/gohelp v1.1.2 h1:Gj/gq7kg8E+gQW0DcJUBNoF0wtF1/oVE/ykHbhrHl+s=
 github.com/dimonrus/gohelp v1.1.2/go.mod h1:0zBPZxKW6rn2NEMWiCxyswKTdqM6UnSFrbR5H846ujk=
-github.com/dimonrus/gosql v0.8.0 h1:vOJfXHppBfX5DJbQfQztp+p3gsuOQzz15/N6znNc8ww=
-github.com/dimonrus/gosql v0.8.0/go.mod h1:lPkKWiSCED2RZQxaCHgFqazDPVvEADdvBURXJn4Bevw=
+github.com/dimonrus/gosql v0.8.1 h1:SD1D6pVq6Ze1Lpw9DLPZm5B5A9mMyuAi55FUIuOQ5rU=
+github.com/dimonrus/gosql v0.8.1/go.mod h1:lPkKWiSCED2RZQxaCHgFqazDPVvEADdvBURXJn4Bevw=
 github.com/dimonrus/porterr v1.13.1 h1:hToohI8rweDANCJSiHBP7XXTWwU48yjoYY+/4WoWAQY=
 github.com/dimonrus/porterr v1.13.1/go.mod h1:BCVpaUyYdawPPzeAa8yjCYvemctND1I9ER/nFnOyDgQ=
 github.com/lib/pq v1.10.9 h1:YXG7RB+JIjhP29X+OtkiDnYaXQwpS4JEWq7dtCCRUEw=
