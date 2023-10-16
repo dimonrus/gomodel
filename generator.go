@@ -55,6 +55,7 @@ type Column struct {
 	UniqueIndexName   *string // Unique index name
 	TableDescription  *string // Table description
 	DefaultTypeValue  *string // Default value for type
+	IsPrecision       bool    // If column has float precision
 }
 
 // GetModelFieldTag Prepare ModelFiledTag by Column
@@ -250,8 +251,22 @@ ORDER BY a.attnum;`, schema, table)
 			column.ModelType = "int32"
 		case column.DataType == "text":
 			column.ModelType = "string"
-		case column.DataType == "double precision":
-			column.ModelType = "float64"
+		case strings.Contains(column.DataType, "double precision"):
+			column.IsPrecision = true
+			if strings.Contains(column.DataType, "[]") {
+				column.ModelType = "pq.Float64Array"
+				column.IsArray = true
+			} else {
+				column.ModelType = "float64"
+			}
+		case strings.Contains(column.DataType, "numeric"):
+			column.IsPrecision = true
+			if strings.Contains(column.DataType, "[]") {
+				column.ModelType = "pq.Float32Array"
+				column.IsArray = true
+			} else {
+				column.ModelType = "float32"
+			}
 		case column.DataType == "boolean":
 			column.ModelType = "bool"
 		case column.DataType == "ARRAY":
@@ -267,8 +282,6 @@ ORDER BY a.attnum;`, schema, table)
 			column.Import = `"time"`
 		case strings.Contains(column.DataType, "character varying"):
 			column.ModelType = "string"
-		case strings.Contains(column.DataType, "numeric"):
-			column.ModelType = "float32"
 		case column.DataType == "uuid":
 			column.ModelType = "string"
 		case column.DataType == "jsonb":
@@ -276,21 +289,21 @@ ORDER BY a.attnum;`, schema, table)
 			column.Import = `"encoding/json"`
 			column.IsByteArray = true
 		case column.DataType == "uuid[]":
-			column.ModelType = "[]string"
-			column.IsArray = true
+			column.ModelType = "pq.StringArray"
 			column.Import = `"github.com/lib/pq"`
+			column.IsArray = true
 		case column.DataType == "integer[]":
-			column.ModelType = "[]int64"
-			column.IsArray = true
+			column.ModelType = "pq.Int32Array"
 			column.Import = `"github.com/lib/pq"`
+			column.IsArray = true
 		case column.DataType == "bigint[]":
-			column.ModelType = "[]int64"
-			column.IsArray = true
+			column.ModelType = "pq.Int64Array"
 			column.Import = `"github.com/lib/pq"`
+			column.IsArray = true
 		case column.DataType == "text[]":
-			column.ModelType = "[]string"
-			column.IsArray = true
+			column.ModelType = "StringArray"
 			column.Import = `"github.com/lib/pq"`
+			column.IsArray = true
 		case strings.Contains(column.DataType, "timestamp"):
 			column.ModelType = "time.Time"
 			column.Import = `"time"`
@@ -368,7 +381,7 @@ func getHelperFunc(systemColumns SystemColumns) template.FuncMap {
 				(column.IsPrimaryKey && column.Sequence != nil)
 		},
 		"isSearchColumn": func(column Column) bool {
-			return !(column.IsDeleted || column.IsCreated || column.IsUpdated || column.Import == `"time"`)
+			return !(column.IsByteArray) && !(column.IsPrecision)
 		},
 		"cameled": func(name string) string {
 			return gohelp.ToCamelCase(name, true)

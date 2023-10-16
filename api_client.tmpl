@@ -27,7 +27,7 @@ func NewService(req goreq.HttpRequest, config Config) Service {
 // Create{{ .Model }} Create {{ icameled .Model }} http method
 func (s Service) Create{{ .Model }}(request {{ .Model }}) ({{ icameled .Model }} {{ .Model }}, e porterr.IError) {
     response := gorest.JsonResponse{Data: &{{ icameled .Model }}}
-    _, err := s.EnsureJSON(http.MethodPost, "api/v1/{{ icameled .Model }}", nil, request, &response)
+    _, err := s.EnsureJSON(http.MethodPost, "api/v1/{{ underscore .Model }}", nil, request, &response)
     if err != nil {
         e = err.(*porterr.PortError)
     }
@@ -37,7 +37,7 @@ func (s Service) Create{{ .Model }}(request {{ .Model }}) ({{ icameled .Model }}
 // Read{{ .Model }} Read {{ icameled .Model }} http method
 func (s Service) Read{{ .Model }}({{ $index := 0 }}{{ range $key, $column := .Columns }}{{ if $column.IsPrimaryKey }}{{ if $index }}, {{ end }}{{ $index = inc $index }} {{ icameled $column.Name }} {{ $column.ModelType }} {{ end }}{{ end }}) ({{ icameled .Model }} {{ .Model }}, e porterr.IError) {
     response := gorest.JsonResponse{Data: &{{ icameled .Model }}}
-    _, err := s.EnsureJSON(http.MethodGet, fmt.Sprintf("api/v1/{{ icameled .Model }}/%v", id), nil, nil, &response)
+    _, err := s.EnsureJSON(http.MethodGet, fmt.Sprintf("api/v1/{{ underscore .Model }}/%v", id), nil, nil, &response)
     if err != nil {
         e = err.(*porterr.PortError)
     }
@@ -47,7 +47,7 @@ func (s Service) Read{{ .Model }}({{ $index := 0 }}{{ range $key, $column := .Co
 // Update{{ .Model }} Update user http method
 func (s Service) Update{{ .Model }}({{ $index := 0 }}{{ range $key, $column := .Columns }}{{ if $column.IsPrimaryKey }}{{ if $index }}, {{ end }}{{ $index = inc $index }} {{ icameled $column.Name }} {{ $column.ModelType }} {{ end }}{{ end }}, request {{ .Model }}) ({{ icameled .Model }} {{ .Model }}, e porterr.IError) {
     response := gorest.JsonResponse{Data: &{{ icameled .Model }}}
-    _, err := s.EnsureJSON(http.MethodPatch, fmt.Sprintf("api/v1/{{ icameled .Model }}/%v", id), nil, request, &response)
+    _, err := s.EnsureJSON(http.MethodPatch, fmt.Sprintf("api/v1/{{ underscore .Model }}/%v", id), nil, request, &response)
     if err != nil {
         e = err.(*porterr.PortError)
     }
@@ -56,7 +56,7 @@ func (s Service) Update{{ .Model }}({{ $index := 0 }}{{ range $key, $column := .
 {{ if .Delete }}
 // Delete{{ .Model }} Delete {{ icameled .Model }} http method
 func (s Service) Delete{{ .Model }}({{ $index := 0 }}{{ range $key, $column := .Columns }}{{ if $column.IsPrimaryKey }}{{ if $index }}, {{ end }}{{ $index = inc $index }} {{ icameled $column.Name }} {{ $column.ModelType }} {{ end }}{{ end }}) (e porterr.IError) {
-    _, err := s.EnsureJSON(http.MethodDelete, fmt.Sprintf("api/v1/{{ icameled .Model }}/%v", id), nil, nil, nil)
+    _, err := s.EnsureJSON(http.MethodDelete, fmt.Sprintf("api/v1/{{ underscore .Model }}/%v", id), nil, nil, nil)
     if err != nil {
         e = err.(*porterr.PortError)
     }
@@ -66,7 +66,7 @@ func (s Service) Delete{{ .Model }}({{ $index := 0 }}{{ range $key, $column := .
 // List{{ .Model }} Get list of {{ searchField (icameled .Model) }} http method
 func (s Service) List{{ .Model }}(form {{ .Model }}SearchForm) (list {{ searchField .Model }}, meta gorest.Meta, e porterr.IError) {
     response := gorest.JsonResponse{Data: &list, Meta: &meta}
-    _, err := s.EnsureJSON(http.MethodPost, "api/v1/{{ icameled .Model }}/list", nil, form, &response)
+    _, err := s.EnsureJSON(http.MethodPost, "api/v1/{{ underscore .Model }}/list", nil, form, &response)
     if err != nil {
         e = err.(*porterr.PortError)
     }

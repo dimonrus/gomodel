@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/dimonrus/gocli"
 	"github.com/dimonrus/godb/v2"
+	"github.com/dimonrus/gosql"
 	"testing"
 )
 
@@ -18,11 +19,46 @@ func (c *connection) GetMaxConnection() int   { return 200 }
 func (c *connection) GetMaxIdleConns() int    { return 15 }
 func (c *connection) GetConnMaxLifetime() int { return 50 }
 
+var testTable = func() gosql.SQList {
+	table := SerialTable("test_table")
+	table.AddColumn("name").Type("TEXT").Constraint().NotNull().Unique()
+	table.AddColumn("sort_order").Type("INT")
+	table.AddColumn("user_id").Type("BIGINT").Constraint().Default("1")
+	table.AddColumn("description").Type("TEXT")
+	table.AddColumn("params").Type("JSONB")
+	table.AddColumn("external_ids").Type("INT[]")
+	table.AddColumn("file_ids").Type("BIGINT[]").Constraint().NotNull()
+	table.AddColumn("is_failed").Type("bool")
+	table.AddColumn("uuids").Type("UUID[]")
+	table.AddColumn("number").Type("NUMERIC(6, 2)")
+	table.AddColumn("prices").Type("NUMERIC(6, 2)[]")
+
+	list := gosql.SQList{table,
+		gosql.NewComment().Table("test_table", "Test table"),
+		gosql.NewComment().Column("test_table.id", "Test table identifier"),
+		gosql.NewComment().Column("test_table.created_at", "Test table created time"),
+		gosql.NewComment().Column("test_table.updated_at", "Test table updated time"),
+		gosql.NewComment().Column("test_table.name", "Test table name"),
+		gosql.NewComment().Column("test_table.sort_order", "Test table sort order"),
+		gosql.NewComment().Column("test_table.user_id", "Test table user_id"),
+		gosql.NewComment().Column("test_table.description", "Test table description"),
+		gosql.NewComment().Column("test_table.params", "Test table parameters"),
+		gosql.NewComment().Column("test_table.external_ids", "Test table external ids"),
+		gosql.NewComment().Column("test_table.file_ids", "Test table file ids"),
+		gosql.NewComment().Column("test_table.is_failed", "Test table is failed flag"),
+		gosql.NewComment().Column("test_table.uuids", "Test table list of uuids"),
+		gosql.NewComment().Column("test_table.number", "Test table float number"),
+		gosql.NewComment().Column("test_table.prices", "Test table list of prices"),
+	}
+	return list
+}
+
 func TestDBO_InitError(t *testing.T) {
 	_, err := godb.DBO{
 		Options: godb.Options{
-			Debug:  true,
-			Logger: gocli.NewLogger(gocli.LoggerConfig{}),
+			Debug:          true,
+			Logger:         gocli.NewLogger(gocli.LoggerConfig{}),
+			QueryProcessor: godb.PreparePositionalArgsQuery,
 		},
 		Connection: &connection{},
 	}.Init()
@@ -34,11 +70,71 @@ func TestDBO_InitError(t *testing.T) {
 func initDb() (*godb.DBO, error) {
 	return godb.DBO{
 		Options: godb.Options{
-			Debug:  true,
-			Logger: gocli.NewLogger(gocli.LoggerConfig{}),
+			Debug:          true,
+			Logger:         gocli.NewLogger(gocli.LoggerConfig{}),
+			QueryProcessor: godb.PreparePositionalArgsQuery,
 		},
 		Connection: &connection{},
 	}.Init()
+}
+
+func TestCreateTestTable(t *testing.T) {
+	db, err := initDb()
+	if err != nil {
+		t.Fatal(err)
+	}
+	list := testTable()
+	query, _, _ := list.Join()
+	_, err = db.Exec(query)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+//func NATestSaveTestTable(t *testing.T) {
+//	db, err := initDb()
+//	if err != nil {
+//		t.Fatal(err)
+//	}
+//	model := NewTestTable()
+//	model.Name = gohelp.Ptr(gohelp.RandString(10))
+//	model.SortOrder = gohelp.Ptr[int32](10)
+//	model.UserId = gohelp.Ptr[int64](1000)
+//	model.FileIds = pq.Int64Array{1, 2, 100, 3000}
+//	model.IsFailed = gohelp.Ptr(true)
+//	model.Uuids = pq.StringArray{gohelp.NewUUID(), gohelp.NewUUID(), gohelp.NewUUID()}
+//	model.Number = gohelp.Ptr[float32](1.2333)
+//	model.Prices = pq.Float32Array{1.233, 2.3444, 4.555}
+//	e := Save(db, model)
+//	if e != nil {
+//		t.Fatal(e)
+//	}
+//	model.Uuids = nil
+//	model.Params = gohelp.Ptr(json.RawMessage(`{"some": 123}`))
+//	model.ExternalIds = pq.Int32Array{1, 2, 3, 4}
+//	model.Prices = nil
+//	e = Save(db, model)
+//	if e != nil {
+//		t.Fatal(e)
+//	}
+//
+//	tt := NewTestTable()
+//	tt.Id = model.Id
+//	e = Load(db, tt)
+//	if e != nil {
+//		t.Fatal(e)
+//	}
+//}
+
+func TestMakeTestTableModel(t *testing.T) {
+	db, err := initDb()
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, _, err = MakeModel(db, "models", "public", "test_table", "", DefaultSystemColumnsSoft)
+	if err != nil {
+		t.Fatal(err)
+	}
 }
 
 func TestMakeModel(t *testing.T) {
@@ -47,7 +143,6 @@ func TestMakeModel(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
 	_, _, err = MakeModel(db, "models", "public", "dictionary", "", DefaultSystemColumnsSoft)
 	if err != nil {
 		t.Fatal(err)
@@ -61,7 +156,7 @@ func TestGenerateCrud(t *testing.T) {
 		t.Fatal(err)
 	}
 	crud := NewCRUDGenerator("app/core", "app/client", "app/io/web/api", "github.com/dimonrus/gomodel")
-	err = crud.Generate(db, "public", "dictionary", "v2", 31)
+	err = crud.Generate(db, "public", "test_table", "v2", 31)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -26,7 +26,7 @@ func (m *{{ .Model }}) Columns() []string {
 
 // Values get all {{ .Model }} model values
 func (m *{{ .Model }}) Values() []any {
-    return []any{ {{ range $key, $column := .Columns }}{{ if $key }}, {{ end }}{{ if $column.IsArray }}pq.Array({{ end }}&m.{{ $column.ModelName }}{{ if $column.IsArray  }}){{ end }}{{ end }} }
+    return []any{ {{ range $key, $column := .Columns }}{{ if $key }}, {{ end }}&m.{{ $column.ModelName }}{{ end }} }
 }
 
 // New{{ .Model }} init {{ .Model }} model method

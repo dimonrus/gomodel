@@ -11,15 +11,40 @@ type {{ searchField .Model }} []*{{ .Model }}
 // {{ .Model }}SearchForm search form for {{ .Model }} entity
 type {{ .Model }}SearchForm struct { {{ range $key, $column := .Columns }}{{ if isSearchColumn $column }}
     {{ if $column.Description }}// {{ $column.Description }}{{ end }}
-    {{ searchField $column.ModelName }} {{ if or $column.IsArray $column.IsByteArray }} {{ $column.ModelType }} {{ else }} []{{ unref $column.ModelType }} {{ end }} {{ jsonTag $column.ModelName }} {{ end }}{{ end }}
+    {{ if eq (unref $column.ModelType) "string" }} {{ $column.ModelName }} *gosql.SearchString {{ jsonSingleTag $column.ModelName }}{{ else if eq (unref $column.ModelType) "bool" }} {{ $column.ModelName }} *bool {{ jsonSingleTag $column.ModelName }}{{ else if eq (unref $column.ModelType) "time.Time" }}{{ $column.ModelName }} *gosql.PeriodFilter {{ jsonSingleTag $column.ModelName }} {{ else if $column.IsArray }} {{ searchField (cameled $column.Name) }} {{ unref $column.ModelType }} {{ jsonTag $column.ModelName }} {{ else }} {{ searchField (cameled $column.Name) }} []{{ unref $column.ModelType }} {{ jsonTag $column.ModelName }} {{ end }} {{ end }} {{ end }}
 }
 
-// PrepareCondition prepare condition for search
+// IsEmpty return true if filter form is empty
+func (f {{ cameled .Model }}SearchForm) IsEmpty() bool {
+    return {{ range $key, $column := .Columns }}{{ if isSearchColumn $column }}{{ if $column.IsArray }}{{ if $key }} && {{ end }}len(f.{{ searchField (cameled $column.Name) }}) == 0{{ else if eq (unref $column.ModelType) "string" }}{{ if $key }} && {{ end }}f.{{ cameled $column.Name }} == nil{{ else if eq (unref $column.ModelType) "bool" }}{{ if $key }} && {{ end }}f.{{ cameled $column.Name }} == nil{{ else if eq (unref $column.ModelType) "time.Time" }}{{ if $key }} && {{ end }}f.{{ cameled $column.Name }} == nil{{ else }}{{ if $key }} && {{ end }}len(f.{{ searchField (cameled $column.Name) }}) == 0 {{ end }}{{end}}{{ end }}
+}
+
+// PrepareCondition collect filters for search condition
 func (f {{ .Model }}SearchForm) PrepareCondition() *gosql.Condition {
+    if f.IsEmpty() {
+        return nil
+    }
     cond := gosql.NewSqlCondition(gosql.ConditionOperatorAnd){{ range $key, $column := .Columns }}{{ if isSearchColumn $column }}
-    if len(f.{{ searchField $column.ModelName }}) > 0 {
-        cond.AddExpression("{{ $column.Name }} = ANY(?)", pq.Array(f.{{ searchField $column.ModelName }}))
-    }{{ end }}{{ end }}
+    {{ if $column.IsArray }}if len(f.{{ searchField (cameled $column.Name) }}) > 0 {
+        cond.AddExpression("{{ $column.Name }} = ANY(?)", f.{{ searchField (cameled $column.Name) }})
+    }{{ else if eq (unref $column.ModelType) "string" }}if f.{{ cameled $column.Name }} != nil {
+        {{ icameled $column.Name }}Condition := f.{{ cameled $column.Name }}.PrepareLikeValue("{{ $column.Name }}")
+        cond.AddExpression({{ icameled $column.Name }}Condition.String(), {{ icameled $column.Name }}Condition.GetArguments()...)
+    }{{ else if eq (unref $column.ModelType) "bool" }}if f.{{ cameled $column.Name }} != nil {
+        if *f.{{ cameled $column.Name }} {
+            cond.AddExpression("{{ $column.Name }} IS TRUE")
+        } else {
+            cond.AddExpression("{{ $column.Name }} IS NOT TRUE")
+        }
+    }{{ else if eq (unref $column.ModelType) "time.Time" }}if f.{{ cameled $column.Name }} != nil {
+        if f.{{ cameled $column.Name }}.Start != nil {
+            cond.AddExpression("{{ $column.Name }} >= ?", f.{{ cameled $column.Name }}.Start)
+        }
+        if f.{{ cameled $column.Name }}.End != nil {
+            cond.AddExpression("{{ $column.Name }} <= ?", f.{{ cameled $column.Name }}.End)
+        }
+    }{{ else }}if len(f.{{ searchField (cameled $column.Name) }}) > 0 {
+        cond.AddExpression("{{ $column.Name }} = ANY(?)", pq.Array(f.{{ searchField (cameled $column.Name) }}))
+    }{{ end }}{{ end }}{{ end }}
     return cond
 }
-
