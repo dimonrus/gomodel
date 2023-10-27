@@ -179,7 +179,7 @@ SELECT a.attname                                                                
                       WHERE i.indrelid = a.attrelid
                         AND i.indisunique IS TRUE
                         AND a.attnum = ANY (i.indkey)))                                AS has_unique_index,
-       (SELECT ins.indexname
+       (SELECT string_agg(ins.indexname, ',')
         FROM pg_indexes ins
                  JOIN pg_index i ON ins.indexdef = pg_get_indexdef(i.indexrelid)
         WHERE i.indisunique IS TRUE
