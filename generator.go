@@ -301,7 +301,7 @@ ORDER BY a.attnum;`, schema, table)
 			column.Import = `"github.com/lib/pq"`
 			column.IsArray = true
 		case column.DataType == "text[]":
-			column.ModelType = "StringArray"
+			column.ModelType = "pq.StringArray"
 			column.Import = `"github.com/lib/pq"`
 			column.IsArray = true
 		case strings.Contains(column.DataType, "timestamp"):
