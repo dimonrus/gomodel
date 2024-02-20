@@ -190,12 +190,12 @@ FROM pg_attribute a
          JOIN pg_class t ON a.attrelid = t.oid
          JOIN pg_namespace s ON t.relnamespace = s.oid
          LEFT JOIN information_schema.columns AS ic
-                   ON ic.column_name = a.attname AND ic.table_name = t.relname AND ic.table_schema = s.nspname
+                   ON ic.column_name = a.attname AND ic.table_name = t.relname
          LEFT JOIN information_schema.key_column_usage AS kcu
-                   ON kcu.table_name = t.relname AND kcu.column_name = a.attname AND kcu.table_schema = s.nspname
+                   ON kcu.table_name = t.relname AND kcu.column_name = a.attname
          LEFT JOIN information_schema.table_constraints AS tc
-                   ON tc.constraint_name = kcu.constraint_name AND tc.constraint_type = 'FOREIGN KEY' AND tc.table_schema = kcu.constraint_schema
-         LEFT JOIN information_schema.constraint_column_usage AS ccu ON ccu.constraint_name = tc.constraint_name AND tc.table_schema = ccu.table_schema
+                   ON tc.constraint_name = kcu.constraint_name AND tc.constraint_type = 'FOREIGN KEY'
+         LEFT JOIN information_schema.constraint_column_usage AS ccu ON ccu.constraint_name = tc.constraint_name
 WHERE a.attnum > 0
   AND NOT a.attisdropped
   AND s.nspname = '%s'
