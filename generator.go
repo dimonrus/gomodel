@@ -262,10 +262,10 @@ ORDER BY a.attnum;`, schema, table)
 		case strings.Contains(column.DataType, "numeric"):
 			column.IsPrecision = true
 			if strings.Contains(column.DataType, "[]") {
-				column.ModelType = "pq.Float32Array"
+				column.ModelType = "pq.Float64Array"
 				column.IsArray = true
 			} else {
-				column.ModelType = "float32"
+				column.ModelType = "float64"
 			}
 		case column.DataType == "boolean":
 			column.ModelType = "bool"
@@ -587,6 +587,7 @@ func MakeModel(db godb.Queryer, dir string, schema string, table string, templat
 		Package          string
 		Model            string
 		Table            string
+		Schema           string
 		TableDescription string
 		Columns          Columns
 		HasSequence      bool
@@ -595,6 +596,7 @@ func MakeModel(db godb.Queryer, dir string, schema string, table string, templat
 		Package:          packageName,
 		Model:            modelName,
 		Table:            table,
+		Schema:           schema,
 		TableDescription: tableDescription,
 		Columns:          *columns,
 		HasSequence:      hasSequence,
