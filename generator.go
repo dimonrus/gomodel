@@ -190,12 +190,12 @@ FROM pg_attribute a
          JOIN pg_class t ON a.attrelid = t.oid
          JOIN pg_namespace s ON t.relnamespace = s.oid
          LEFT JOIN information_schema.columns AS ic
-                   ON ic.column_name = a.attname AND ic.table_name = t.relname AND ic.table_schema = s.nspname
+                   ON ic.column_name = a.attname AND ic.table_name = t.relname
          LEFT JOIN information_schema.key_column_usage AS kcu
-                   ON kcu.table_name = t.relname AND kcu.column_name = a.attname AND kcu.table_schema = s.nspname
+                   ON kcu.table_name = t.relname AND kcu.column_name = a.attname
          LEFT JOIN information_schema.table_constraints AS tc
-                   ON tc.constraint_name = kcu.constraint_name AND tc.constraint_type = 'FOREIGN KEY' AND tc.table_schema = kcu.constraint_schema
-         LEFT JOIN information_schema.constraint_column_usage AS ccu ON ccu.constraint_name = tc.constraint_name AND tc.table_schema = ccu.table_schema
+                   ON tc.constraint_name = kcu.constraint_name AND tc.constraint_type = 'FOREIGN KEY'
+         LEFT JOIN information_schema.constraint_column_usage AS ccu ON ccu.constraint_name = tc.constraint_name
 WHERE a.attnum > 0
   AND NOT a.attisdropped
   AND s.nspname = '%s'
@@ -262,10 +262,10 @@ ORDER BY a.attnum;`, schema, table)
 		case strings.Contains(column.DataType, "numeric"):
 			column.IsPrecision = true
 			if strings.Contains(column.DataType, "[]") {
-				column.ModelType = "pq.Float32Array"
+				column.ModelType = "pq.Float64Array"
 				column.IsArray = true
 			} else {
-				column.ModelType = "float32"
+				column.ModelType = "float64"
 			}
 		case column.DataType == "boolean":
 			column.ModelType = "bool"
@@ -587,6 +587,7 @@ func MakeModel(db godb.Queryer, dir string, schema string, table string, templat
 		Package          string
 		Model            string
 		Table            string
+		Schema           string
 		TableDescription string
 		Columns          Columns
 		HasSequence      bool
@@ -595,6 +596,7 @@ func MakeModel(db godb.Queryer, dir string, schema string, table string, templat
 		Package:          packageName,
 		Model:            modelName,
 		Table:            table,
+		Schema:           schema,
 		TableDescription: tableDescription,
 		Columns:          *columns,
 		HasSequence:      hasSequence,

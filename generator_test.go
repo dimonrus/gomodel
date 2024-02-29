@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/dimonrus/gocli"
 	"github.com/dimonrus/godb/v2"
+	"github.com/dimonrus/gohelp"
 	"github.com/dimonrus/gosql"
 	"testing"
 )
@@ -19,8 +20,8 @@ func (c *connection) GetMaxConnection() int   { return 200 }
 func (c *connection) GetMaxIdleConns() int    { return 15 }
 func (c *connection) GetConnMaxLifetime() int { return 50 }
 
-var testTable = func() gosql.SQList {
-	table := SerialTable("test_table")
+var testTable = func(schema string) gosql.SQList {
+	table := SerialTable(schema + "test_table")
 	table.AddColumn("name").Type("TEXT").Constraint().NotNull().Unique()
 	table.AddColumn("sort_order").Type("INT")
 	table.AddColumn("user_id").Type("BIGINT").Constraint().Default("1")
@@ -28,27 +29,29 @@ var testTable = func() gosql.SQList {
 	table.AddColumn("params").Type("JSONB")
 	table.AddColumn("external_ids").Type("INT[]")
 	table.AddColumn("file_ids").Type("BIGINT[]").Constraint().NotNull()
+	table.AddColumn("status_id").Type("INT").Constraint().NotNull().
+		References().RefTable("dictionary").Column("id").OnDelete(gosql.ActionRestrict).OnUpdate(gosql.ActionCascade)
 	table.AddColumn("is_failed").Type("bool")
 	table.AddColumn("uuids").Type("UUID[]")
 	table.AddColumn("number").Type("NUMERIC(6, 2)")
 	table.AddColumn("prices").Type("NUMERIC(6, 2)[]")
 
 	list := gosql.SQList{table,
-		gosql.NewComment().Table("test_table", "Test table"),
-		gosql.NewComment().Column("test_table.id", "Test table identifier"),
-		gosql.NewComment().Column("test_table.created_at", "Test table created time"),
-		gosql.NewComment().Column("test_table.updated_at", "Test table updated time"),
-		gosql.NewComment().Column("test_table.name", "Test table name"),
-		gosql.NewComment().Column("test_table.sort_order", "Test table sort order"),
-		gosql.NewComment().Column("test_table.user_id", "Test table user_id"),
-		gosql.NewComment().Column("test_table.description", "Test table description"),
-		gosql.NewComment().Column("test_table.params", "Test table parameters"),
-		gosql.NewComment().Column("test_table.external_ids", "Test table external ids"),
-		gosql.NewComment().Column("test_table.file_ids", "Test table file ids"),
-		gosql.NewComment().Column("test_table.is_failed", "Test table is failed flag"),
-		gosql.NewComment().Column("test_table.uuids", "Test table list of uuids"),
-		gosql.NewComment().Column("test_table.number", "Test table float number"),
-		gosql.NewComment().Column("test_table.prices", "Test table list of prices"),
+		gosql.NewComment().Table(schema+"test_table", "Test table"),
+		gosql.NewComment().Column(schema+"test_table.id", "Test table identifier"),
+		gosql.NewComment().Column(schema+"test_table.created_at", "Test table created time"),
+		gosql.NewComment().Column(schema+"test_table.updated_at", "Test table updated time"),
+		gosql.NewComment().Column(schema+"test_table.name", "Test table name"),
+		gosql.NewComment().Column(schema+"test_table.sort_order", "Test table sort order"),
+		gosql.NewComment().Column(schema+"test_table.user_id", "Test table user_id"),
+		gosql.NewComment().Column(schema+"test_table.description", "Test table description"),
+		gosql.NewComment().Column(schema+"test_table.params", "Test table parameters"),
+		gosql.NewComment().Column(schema+"test_table.external_ids", "Test table external ids"),
+		gosql.NewComment().Column(schema+"test_table.file_ids", "Test table file ids"),
+		gosql.NewComment().Column(schema+"test_table.is_failed", "Test table is failed flag"),
+		gosql.NewComment().Column(schema+"test_table.uuids", "Test table list of uuids"),
+		gosql.NewComment().Column(schema+"test_table.number", "Test table float number"),
+		gosql.NewComment().Column(schema+"test_table.prices", "Test table list of prices"),
 	}
 	return list
 }
@@ -83,11 +86,34 @@ func TestCreateTestTable(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	list := testTable()
+	err = CreateDictionaryTable(db)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var schema = "kpi"
+	var schemaQuery = "CREATE SCHEMA IF NOT EXISTS %s;"
+	schemaQuery = fmt.Sprintf(schemaQuery, schema)
+	_, err = db.Exec(schemaQuery)
+	if err != nil {
+		t.Fatal(err)
+	}
+	schema += "."
+	list := testTable(schema)
 	query, _, _ := list.Join()
 	_, err = db.Exec(query)
 	if err != nil {
 		t.Fatal(err)
+	}
+	col := NewCollection[DictionaryModel]()
+	col.AddItem(&DictionaryModel{
+		Id:    gohelp.Ptr[int32](1000),
+		Type:  gohelp.Ptr("test_table_status"),
+		Code:  gohelp.Ptr("new"),
+		Label: gohelp.Ptr("New status"),
+	})
+	e := col.Save(db)
+	if e != nil {
+		t.Fatal(e)
 	}
 }
 

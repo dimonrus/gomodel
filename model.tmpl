@@ -16,7 +16,7 @@ type {{ .Model }} struct { {{ range $key, $column := .Columns }}{{ if $column.De
 
 // Table get {{ .Model }} model table name
 func (m *{{ .Model }}) Table() string {
-    return "{{ .Table }}"
+    return {{ if ne .Schema "public" }}"{{ .Schema }}.{{ .Table }}"{{ else }}"{{ .Table }}"{{ end }}
 }
 
 // Columns get all {{ .Model }} model columns
