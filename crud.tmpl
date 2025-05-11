@@ -46,14 +46,13 @@ func New{{ .Model }}() *{{ .Model }} {
 // {{ .Model }}Search search items according to form
 func {{ .Model }}Search(q godb.Queryer, form client.{{ .Model }}SearchForm) (items []*client.{{ .Model }}, meta gorest.Meta, e porterr.IError) {
     collection := client.New{{ .Model }}Collection()
+    collection.AddCountOver()
     condition := form.PrepareCondition()
-    if condition.IsEmpty() {
-        items = collection.Items()
-        return
+    if !condition.IsEmpty() {
+        collection.Where().Replace(condition)
     }
-    collection.Where().Replace(condition)
     e = collection.Load(q)
     items = collection.Items()
-    meta.Total = collection.Count()
+    meta.Total = collection.CountOver
     return
 }
