@@ -9,12 +9,13 @@ func TestGetDeleteSQL(t *testing.T) {
 		model := &InsertModel1{}
 		model.Id = &ACMId
 		iSql := GetDeleteSQL(model)
+		iSql = GetDeleteSQL(model)
 		if iSql == nil {
 			t.Fatal("soft must be not nil")
 		}
 		query, params, returning := iSql.SQL()
 		t.Log(query)
-		if query != `UPDATE test_model SET updated_at = NOW(), deleted_at = NOW() WHERE (id = ?) RETURNING updated_at, deleted_at;` {
+		if query != `UPDATE test_model_1 SET updated_at = NOW(), deleted_at = NOW() WHERE (id = ?) RETURNING updated_at, deleted_at;` {
 			t.Fatal("soft wrong query")
 		}
 		if len(params) != 1 {
@@ -34,12 +35,13 @@ func TestGetDeleteSQL(t *testing.T) {
 		model := &InsertModel2{}
 		model.SomeInt = &ACMSomeInt
 		iSql := GetDeleteSQL(model)
+		iSql = GetDeleteSQL(model)
 		if iSql == nil {
 			t.Fatal("soft must be not nil")
 		}
 		query, params, returning := iSql.SQL()
 		t.Log(query)
-		if query != `UPDATE test_model SET updated_at = NOW(), deleted_at = NOW() WHERE (some_int = ?) RETURNING updated_at, deleted_at;` {
+		if query != `UPDATE test_model_2 SET updated_at = NOW(), deleted_at = NOW() WHERE (some_int = ?) RETURNING updated_at, deleted_at;` {
 			t.Fatal("soft wrong query")
 		}
 		if len(params) != 1 {
@@ -59,12 +61,13 @@ func TestGetDeleteSQL(t *testing.T) {
 		model := &DeleteModel1{}
 		model.Id = &ACMId
 		iSql := GetDeleteSQL(model)
+		iSql = GetDeleteSQL(model)
 		if iSql == nil {
 			t.Fatal("classic must be not nil")
 		}
 		query, params, returning := iSql.SQL()
 		t.Log(query)
-		if query != "DELETE FROM test_model WHERE (id = ?);" {
+		if query != "DELETE FROM test_model_del_1 WHERE (id = ?);" {
 			t.Fatal("classic wrong query")
 		}
 		if len(params) != 1 {
@@ -84,12 +87,13 @@ func TestGetDeleteSQL(t *testing.T) {
 		model := &DeleteModel2{}
 		model.SomeInt = &ACMSomeInt
 		iSql := GetDeleteSQL(model)
+		iSql = GetDeleteSQL(model)
 		if iSql == nil {
 			t.Fatal("classic_unique must be not nil")
 		}
 		query, params, returning := iSql.SQL()
 		t.Log(query)
-		if query != "DELETE FROM test_model WHERE (some_int = ?);" {
+		if query != "DELETE FROM test_model_del_2 WHERE (some_int = ?);" {
 			t.Fatal("classic_unique wrong query")
 		}
 		if len(params) != 1 {
@@ -111,9 +115,10 @@ func BenchmarkName(b *testing.B) {
 	// goos: darwin
 	// goarch: arm64
 	// pkg: github.com/dimonrus/gomodel
+	// cpu: Apple M2 Max
 	// BenchmarkName
 	// BenchmarkName/soft
-	// BenchmarkName/soft-12         	 1803002	       660.9 ns/op	     736 B/op	      10 allocs/op
+	// BenchmarkName/soft-12         	11276269	        93.74 ns/op	     144 B/op	       2 allocs/op
 	b.Run("soft", func(b *testing.B) {
 		model := NewTestModel()
 		model.Id = &ACMId
@@ -122,12 +127,14 @@ func BenchmarkName(b *testing.B) {
 		}
 		b.ReportAllocs()
 	})
+
 	// goos: darwin
 	// goarch: arm64
 	// pkg: github.com/dimonrus/gomodel
+	// cpu: Apple M2 Max
 	// BenchmarkName
 	// BenchmarkName/classic
-	// BenchmarkName/classic-12         	 1048124	      1127 ns/op	    1096 B/op	      20 allocs/op
+	// BenchmarkName/classic-12         	 8411258	       131.3 ns/op	     224 B/op	       4 allocs/op
 	b.Run("classic", func(b *testing.B) {
 		model := &InsertModel1{}
 		model.Id = &ACMId

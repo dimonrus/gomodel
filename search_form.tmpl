@@ -14,7 +14,7 @@ type {{ .Model }}SearchForm struct { {{ range $key, $column := .Columns }}{{ if 
     {{ if eq (unref $column.ModelType) "string" }} {{ $column.ModelName }} *gosql.SearchString {{ jsonSingleTag $column.ModelName }}{{ else if eq (unref $column.ModelType) "bool" }} {{ $column.ModelName }} *bool {{ jsonSingleTag $column.ModelName }}{{ else if eq (unref $column.ModelType) "time.Time" }}{{ $column.ModelName }} *gosql.PeriodFilter {{ jsonSingleTag $column.ModelName }} {{ else if $column.IsArray }} {{ searchField (cameled $column.Name) }} {{ unref $column.ModelType }} {{ jsonTag $column.ModelName }} {{ else }} {{ searchField (cameled $column.Name) }} []{{ unref $column.ModelType }} {{ jsonTag $column.ModelName }} {{ end }} {{ end }} {{ end }}
 }
 
-// IsEmpty return true if filter form is empty
+// IsEmpty return true if a filter form is empty
 func (f {{ cameled .Model }}SearchForm) IsEmpty() bool {
     return {{ range $key, $column := .Columns }}{{ if isSearchColumn $column }}{{ if $column.IsArray }}{{ if $key }} && {{ end }}len(f.{{ searchField (cameled $column.Name) }}) == 0{{ else if eq (unref $column.ModelType) "string" }}{{ if $key }} && {{ end }}f.{{ cameled $column.Name }} == nil{{ else if eq (unref $column.ModelType) "bool" }}{{ if $key }} && {{ end }}f.{{ cameled $column.Name }} == nil{{ else if eq (unref $column.ModelType) "time.Time" }}{{ if $key }} && {{ end }}f.{{ cameled $column.Name }} == nil{{ else }}{{ if $key }} && {{ end }}len(f.{{ searchField (cameled $column.Name) }}) == 0 {{ end }}{{end}}{{ end }}
 }

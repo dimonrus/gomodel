@@ -25,7 +25,7 @@ type InsertModel1 struct {
 }
 
 // Model table name
-func (m *InsertModel1) Table() string { return "test_model" }
+func (m *InsertModel1) Table() string { return "test_model_1" }
 
 // Model columns
 func (m *InsertModel1) Columns() []string {
@@ -48,7 +48,7 @@ type InsertModel2 struct {
 }
 
 // Model table name
-func (m *InsertModel2) Table() string { return "test_model" }
+func (m *InsertModel2) Table() string { return "test_model_2" }
 
 // Model columns
 func (m *InsertModel2) Columns() []string {
@@ -68,7 +68,7 @@ type InsertModel3 struct {
 }
 
 // Model table name
-func (m *InsertModel3) Table() string { return "test_model" }
+func (m *InsertModel3) Table() string { return "test_model_3" }
 
 // Model columns
 func (m *InsertModel3) Columns() []string {
@@ -91,7 +91,7 @@ type UpsertModel1 struct {
 }
 
 // Model table name
-func (m *UpsertModel1) Table() string { return "test_model" }
+func (m *UpsertModel1) Table() string { return "test_model_up_1" }
 
 // Model columns
 func (m *UpsertModel1) Columns() []string {
@@ -114,7 +114,7 @@ type UpsertModel2 struct {
 }
 
 // Model table name
-func (m *UpsertModel2) Table() string { return "test_model" }
+func (m *UpsertModel2) Table() string { return "test_model_up_2" }
 
 // Model columns
 func (m *UpsertModel2) Columns() []string {
@@ -137,7 +137,7 @@ type UpsertModel3 struct {
 }
 
 // Model table name
-func (m *UpsertModel3) Table() string { return "test_model" }
+func (m *UpsertModel3) Table() string { return "test_model_up_3" }
 
 // Model columns
 func (m *UpsertModel3) Columns() []string {
@@ -160,7 +160,7 @@ type UpsertModel4 struct {
 }
 
 // Model table name
-func (m *UpsertModel4) Table() string { return "test_model" }
+func (m *UpsertModel4) Table() string { return "test_model_up_4" }
 
 // Model columns
 func (m *UpsertModel4) Columns() []string {
@@ -184,7 +184,7 @@ type UpsertModel5 struct {
 }
 
 // Model table name
-func (m *UpsertModel5) Table() string { return "test_model" }
+func (m *UpsertModel5) Table() string { return "test_model_up_5" }
 
 // Model columns
 func (m *UpsertModel5) Columns() []string {
@@ -207,7 +207,7 @@ type UpdateModel1 struct {
 }
 
 // Model table name
-func (m *UpdateModel1) Table() string { return "test_model" }
+func (m *UpdateModel1) Table() string { return "test_model_upd_1" }
 
 // Model columns
 func (m *UpdateModel1) Columns() []string {
@@ -230,7 +230,7 @@ type UpdateModel2 struct {
 }
 
 // Model table name
-func (m *UpdateModel2) Table() string { return "test_model" }
+func (m *UpdateModel2) Table() string { return "test_model_upd_2" }
 
 // Model columns
 func (m *UpdateModel2) Columns() []string {
@@ -252,7 +252,7 @@ type DeleteModel1 struct {
 }
 
 // Model table name
-func (m *DeleteModel1) Table() string { return "test_model" }
+func (m *DeleteModel1) Table() string { return "test_model_del_1" }
 
 // Model columns
 func (m *DeleteModel1) Columns() []string {
@@ -274,7 +274,7 @@ type DeleteModel2 struct {
 }
 
 // Model table name
-func (m *DeleteModel2) Table() string { return "test_model" }
+func (m *DeleteModel2) Table() string { return "test_model_del_2" }
 
 // Model columns
 func (m *DeleteModel2) Columns() []string {
