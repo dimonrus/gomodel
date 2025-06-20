@@ -2,28 +2,28 @@ package gomodel
 
 import "github.com/dimonrus/gosql"
 
-// SerialSoftTable init table for soft control model
+// SerialSoftTable init table for a soft control model
 func SerialSoftTable(name string) *gosql.Table {
 	table := gosql.CreateTable(name)
 	gosql.TableModeler{SerialPrimaryKeyModifier, TimestampModifier, SoftModifier}.Prepare(table)
 	return table
 }
 
-// BigSerialSoftTable init table for soft control model
+// BigSerialSoftTable init table for a soft control model
 func BigSerialSoftTable(name string) *gosql.Table {
 	table := gosql.CreateTable(name)
 	gosql.TableModeler{BigSerialPrimaryKeyModifier, TimestampModifier, SoftModifier}.Prepare(table)
 	return table
 }
 
-// SerialTable init table for control model
+// SerialTable init table for a control model
 func SerialTable(name string) *gosql.Table {
 	table := gosql.CreateTable(name)
 	gosql.TableModeler{SerialPrimaryKeyModifier, TimestampModifier}.Prepare(table)
 	return table
 }
 
-// BigSerialTable init table for control model
+// BigSerialTable init table for a control model
 func BigSerialTable(name string) *gosql.Table {
 	table := gosql.CreateTable(name)
 	gosql.TableModeler{BigSerialPrimaryKeyModifier, TimestampModifier}.Prepare(table)
@@ -46,7 +46,7 @@ func SerialPrimaryKeyModifier(tb *gosql.Table) {
 	tb.AddColumn("id").Type("serial").Constraint().NotNull().PrimaryKey()
 }
 
-// BigSerialPrimaryKeyModifier create id bigserial primary key column
+// BigSerialPrimaryKeyModifier create id big serial primary key column
 func BigSerialPrimaryKeyModifier(tb *gosql.Table) {
 	tb.AddColumn("id").Type("bigserial").Constraint().NotNull().PrimaryKey()
 }

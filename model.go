@@ -42,17 +42,24 @@ func PrepareMetaModel(model IModel) *MetaModel {
 	ve = ve.Elem()
 	te := reflect.TypeOf(model).Elem()
 	table := model.Table()
-	fields := make([]ModelFiledTag, 0, ve.NumField())
+	fieldsCount := ve.NumField()
+	fields := make([]ModelFiledTag, 0, fieldsCount)
 	meta := MetaModel{
 		TableName: table,
 		Fields:    fields,
 	}
-	for i := 0; i < ve.NumField(); i++ {
+	for i := 0; i < fieldsCount; i++ {
 		if tag, ok := te.Field(i).Tag.Lookup("db"); ok {
 			var tField ModelFiledTag
 			ParseModelFiledTag(tag, &tField)
 			if !tField.IsIgnored {
-				tField.Value = ve.Field(i).Addr().Interface()
+				field := ve.Field(i)
+				tField.Value = field.Addr().Interface()
+				tField.Index = i
+				tField.IsZero = field.IsZero()
+				if field.Kind() == reflect.Ptr {
+					tField.IsNil = field.IsNil()
+				}
 				meta.Fields = append(meta.Fields, tField)
 			}
 		}

@@ -43,8 +43,12 @@ func (l ModelFiledTagList) IsSoft() bool {
 }
 
 // ModelFiledTag All possible model field tag properties
-// tag must have 3 symbol length
+// tag must have 3 symbol lengths
 type ModelFiledTag struct {
+	// Interface to value
+	Value any
+	// Field position in struct
+	Index int
 	// DB column name
 	Column string `tag:"col"`
 	// Foreign key definition
@@ -67,8 +71,10 @@ type ModelFiledTag struct {
 	IsIgnored bool `tag:"ign"`
 	// Is array value
 	IsArray bool `tag:"arr"`
-	// Interface to value
-	Value any
+	// If is zero
+	IsZero bool
+	// If is nil
+	IsNil bool
 }
 
 // Clear tags
@@ -85,6 +91,9 @@ func (t *ModelFiledTag) Clear() {
 	t.IsIgnored = false
 	t.IsArray = false
 	t.Value = nil
+	t.IsNil = false
+	t.IsZero = false
+	t.Index = 0
 }
 
 // Prepare string tag
