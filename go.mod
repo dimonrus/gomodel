@@ -3,9 +3,9 @@ module github.com/dimonrus/gomodel
 go 1.18
 
 require (
-	github.com/dimonrus/gocli v0.12.6
+	github.com/dimonrus/gocli v0.13.0
 	github.com/dimonrus/godb/v2 v2.5.5
-	github.com/dimonrus/gohelp v1.6.1
+	github.com/dimonrus/gohelp v1.6.2
 	github.com/dimonrus/gosql v0.9.5
 	github.com/dimonrus/porterr v1.13.1
 	github.com/lib/pq v1.10.9
