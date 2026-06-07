@@ -270,5 +270,4 @@ func TestWizard_Next(t *testing.T) {
 			t.Fatal("must not be completed")
 		}
 	})
-
 }

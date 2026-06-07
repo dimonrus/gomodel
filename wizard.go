@@ -91,8 +91,8 @@ func (w *Wizard[T]) SetByName(field string, value any) (e porterr.IError) {
 		return
 	}
 	w.values[index] = value
-	left := w.cursor>>8 | uint16(index)
-	w.cursor = left<<8 | uint16(index)
+	left := w.cursor>>8 | uint16(index&0xffff)
+	w.cursor = left<<8 | uint16(index&0xffff)
 	return
 }
 

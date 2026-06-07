@@ -5,18 +5,27 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
-	"github.com/dimonrus/godb/v2"
-	"github.com/dimonrus/gohelp"
+	"io/fs"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 	"text/template"
+
+	"github.com/dimonrus/godb/v2"
+	"github.com/dimonrus/gohelp"
 )
 
 //go:embed model.tmpl
 var DefaultModelTemplate string
+
+const (
+	// FileMod permission for scripts
+	FileMod fs.FileMode = 0750
+	// FileModRestrict restrict file mode
+	FileModRestrict fs.FileMode = 0600
+)
 
 var DefaultSystemColumnsSoft = SystemColumns{Created: "created_at", Updated: "updated_at", Deleted: "deleted_at"}
 var DefaultSystemColumns = SystemColumns{Created: "created_at", Updated: "updated_at"}
@@ -476,8 +485,8 @@ func multipleValueName(name string) string {
 func CreateFile(name, path string) (*os.File, string, error) {
 	var filePath string
 	if path != "" {
-		folderPath := fmt.Sprintf(path)
-		err := os.MkdirAll(folderPath, os.ModePerm)
+		folderPath := filepath.Clean(path)
+		err := os.MkdirAll(folderPath, FileMod)
 		if err != nil {
 			return nil, "", err
 		}
@@ -485,7 +494,7 @@ func CreateFile(name, path string) (*os.File, string, error) {
 	} else {
 		filePath = fmt.Sprintf("%s.go", name)
 	}
-	f, err := os.Create(filePath)
+	f, err := os.Create(filepath.Clean(filePath))
 	if err != nil {
 		return nil, "", err
 	}
@@ -529,17 +538,23 @@ func MakeModel(db godb.Queryer, dir string, schema string, table string, templat
 	tmpl := template.New("model").Funcs(getHelperFunc(systemColumns))
 	// Get preloaded template
 	var tmlString = DefaultModelTemplate
-	templateFile, err := os.Open(templatePath)
-	if err == nil {
-		var data []byte
-		// Read template
-		data, err = ioutil.ReadAll(templateFile)
-		if err != nil {
+	path := filepath.Clean(templatePath)
+	if path != "." {
+		var templateFile *os.File
+		templateFile, err = os.Open(path)
+		if err == nil {
+			var data []byte
+			// Read template
+			data, err = ioutil.ReadAll(templateFile)
+			if err != nil {
+				_ = templateFile.Close()
+				return
+			}
+			tmlString = string(data)
+			_ = templateFile.Close()
+		} else if tmlString == "" {
 			return
 		}
-		tmlString = string(data)
-	} else if tmlString == "" {
-		return
 	}
 	// Get dictionary items
 	dictionaryItems := getDictionaryItems(db)
@@ -610,7 +625,8 @@ func MakeModel(db godb.Queryer, dir string, schema string, table string, templat
 		return
 	}
 	// Format code
-	cmd := exec.Command("go", "fmt", path)
+	// #nosec
+	cmd := exec.Command("go", "fmt", filepath.Clean(path))
 	err = cmd.Run()
 	if err != nil {
 		return
@@ -630,19 +646,21 @@ func MakeModel(db godb.Queryer, dir string, schema string, table string, templat
 				if info.IsDir() {
 					return nil
 				}
-				file, err := os.Open(path)
+				file, err = os.Open(filepath.Clean(path))
 				if err != nil {
+					_ = file.Close()
 					return err
 				}
-				defer file.Close()
 				data, err := ioutil.ReadAll(file)
 				if err != nil {
+					_ = file.Close()
 					return err
 				}
 				modelName := getModelName(schema, *c.ForeignTable)
 				if strings.Contains(string(data), fmt.Sprintf("type %s struct {", modelName)) {
 					found = true
 				}
+				_ = file.Close()
 				return nil
 			})
 			if err != nil {

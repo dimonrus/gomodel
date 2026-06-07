@@ -6,14 +6,16 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
-	"github.com/dimonrus/gocli"
-	"github.com/dimonrus/godb/v2"
-	"github.com/dimonrus/gohelp"
 	"io"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"text/template"
+
+	"github.com/dimonrus/gocli"
+	"github.com/dimonrus/godb/v2"
+	"github.com/dimonrus/gohelp"
 )
 
 //go:embed crud.tmpl
@@ -116,6 +118,13 @@ func NewCRUDGenerator(CRUDPath, ClientPath, APIPath, ProjectPath string) *CRUDGe
 	}
 }
 
+// FormatGo save format go file
+func (c CRUDGenerator) FormatGo(path string) error {
+	// #nosec
+	cmd := exec.Command("go", "fmt", filepath.Clean(path))
+	return cmd.Run()
+}
+
 // GetColumns lazy load for columns
 func (c *CRUDGenerator) GetColumns(q godb.Queryer, schema, table string) (*Columns, error) {
 	if c.columns != nil {
@@ -190,8 +199,7 @@ func (c CRUDGenerator) MakeCoreCrud(logger gocli.Logger, schema, table string) (
 	}
 	logger.Printf("Core %s file created: %s", getModelName(schema, table), path)
 	// Format code
-	cmd := exec.Command("go", "fmt", path)
-	return cmd.Run()
+	return c.FormatGo(path)
 }
 
 // MakeSearchForm generate search form
@@ -235,8 +243,7 @@ func (c CRUDGenerator) MakeSearchForm(logger gocli.Logger, schema, table string)
 	}
 	logger.Printf("Client %s search file created: %s", getModelName(schema, table), path)
 	// Format code
-	cmd := exec.Command("go", "fmt", path)
-	return cmd.Run()
+	return c.FormatGo(path)
 }
 
 // MakeAPIRead generate qpi read
@@ -277,8 +284,7 @@ func (c CRUDGenerator) MakeAPIRead(logger gocli.Logger, schema, table, version s
 	}
 	logger.Printf("API read %s file created: %s", getModelName(schema, table), path)
 	// Format code
-	cmd := exec.Command("go", "fmt", path)
-	return cmd.Run()
+	return c.FormatGo(path)
 }
 
 // MakeAPIDelete generate qpi delete
@@ -318,8 +324,7 @@ func (c CRUDGenerator) MakeAPIDelete(logger gocli.Logger, schema, table, version
 	}
 	logger.Printf("API delete %s file created: %s", getModelName(schema, table), path)
 	// Format code
-	cmd := exec.Command("go", "fmt", path)
-	return cmd.Run()
+	return c.FormatGo(path)
 }
 
 // MakeAPIUpdate generate api update
@@ -360,8 +365,7 @@ func (c CRUDGenerator) MakeAPIUpdate(logger gocli.Logger, schema, table, version
 	}
 	logger.Printf("API update %s file created: %s", getModelName(schema, table), path)
 	// Format code
-	cmd := exec.Command("go", "fmt", path)
-	return cmd.Run()
+	return c.FormatGo(path)
 }
 
 // MakeAPICreate generate qpi create
@@ -400,8 +404,7 @@ func (c CRUDGenerator) MakeAPICreate(logger gocli.Logger, schema, table, version
 	}
 	logger.Printf("API create %s file created: %s", getModelName(schema, table), path)
 	// Format code
-	cmd := exec.Command("go", "fmt", path)
-	return cmd.Run()
+	return c.FormatGo(path)
 }
 
 // MakeAPISearch generate qpi search
@@ -440,8 +443,7 @@ func (c CRUDGenerator) MakeAPISearch(logger gocli.Logger, schema, table, version
 	}
 	logger.Printf("API search %s file created: %s", getModelName(schema, table), path)
 	// Format code
-	cmd := exec.Command("go", "fmt", path)
-	return cmd.Run()
+	return c.FormatGo(path)
 }
 
 // MakeAPIRoute generate qpi route
@@ -479,15 +481,14 @@ func (c CRUDGenerator) MakeAPIRoute(logger gocli.Logger, schema, table, version 
 	}
 	logger.Printf("API route %s file created: %s", getModelName(schema, table), path)
 	// Format code
-	cmd := exec.Command("go", "fmt", path)
-	return cmd.Run()
+	return c.FormatGo(path)
 }
 
 // MakeAPIClient generate qpi search
 func (c CRUDGenerator) MakeAPIClient(logger gocli.Logger, schema, table, version string, num CrudNumber) (err error) {
 	// Update file if already exists
 	path := c.ClientPath + string(os.PathSeparator) + "api_client.go"
-	f, _ := os.Open(path)
+	f, _ := os.Open(filepath.Clean(path))
 	if f != nil {
 		content, err := io.ReadAll(f)
 		if err != nil {
@@ -532,8 +533,7 @@ func (c CRUDGenerator) MakeAPIClient(logger gocli.Logger, schema, table, version
 	}
 	logger.Printf("API client file created: %s", path)
 	// Format code
-	cmd := exec.Command("go", "fmt", path)
-	return cmd.Run()
+	return c.FormatGo(path)
 }
 
 // UpdateAPIClient update client api callbacks
@@ -640,7 +640,7 @@ func (c CRUDGenerator) UpdateAPIClient(logger gocli.Logger, path string, content
 	if err != nil {
 		return
 	}
-	f, err := os.OpenFile(path, os.O_WRONLY|os.O_APPEND, os.ModePerm)
+	f, err := os.OpenFile(filepath.Clean(path), os.O_WRONLY|os.O_APPEND, FileModRestrict)
 	if err != nil {
 		return
 	}
@@ -653,15 +653,15 @@ func (c CRUDGenerator) UpdateAPIClient(logger gocli.Logger, path string, content
 		return
 	}
 	logger.Printf("API client file updated: %s", path)
-	cmd := exec.Command("go", "fmt", path)
-	return cmd.Run()
+	// Format code
+	return c.FormatGo(path)
 }
 
 // AddToGlobalRoute add global route for target entity
 func (c CRUDGenerator) AddToGlobalRoute(logger gocli.Logger, schema, table, version string) (err error) {
 	path := c.APIPath + string(os.PathSeparator) + "../route.go"
 	var content []byte
-	content, err = os.ReadFile(path)
+	content, err = os.ReadFile(filepath.Clean(path))
 	if err != nil {
 		return err
 	}
@@ -701,7 +701,7 @@ func (c CRUDGenerator) AddToGlobalRoute(logger gocli.Logger, schema, table, vers
 		}
 		newContent.WriteString(string(line) + "\n")
 	}
-	f, err := os.OpenFile(path, os.O_WRONLY, os.ModePerm)
+	f, err := os.OpenFile(filepath.Clean(path), os.O_WRONLY, FileModRestrict)
 	if err != nil {
 		return
 	}
@@ -711,8 +711,8 @@ func (c CRUDGenerator) AddToGlobalRoute(logger gocli.Logger, schema, table, vers
 		return
 	}
 	logger.Printf("API sub route added: %s", path)
-	cmd := exec.Command("go", "fmt", path)
-	return cmd.Run()
+	// Format code
+	return c.FormatGo(path)
 }
 
 // Generate generate crud, client, api

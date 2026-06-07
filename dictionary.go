@@ -4,15 +4,17 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
-	"github.com/dimonrus/godb/v2"
-	"github.com/dimonrus/gohelp"
-	"github.com/dimonrus/gosql"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"text/template"
 	"time"
+
+	"github.com/dimonrus/godb/v2"
+	"github.com/dimonrus/gohelp"
+	"github.com/dimonrus/gosql"
 )
 
 //go:embed dictionary_mapping.tmpl
@@ -131,6 +133,7 @@ func CreateDictionaryTable(q godb.Queryer) error {
 
 // Create or update dictionary mapping
 func GenerateDictionaryMapping(path string, q godb.Queryer) error {
+	path = filepath.Clean(path)
 	dictionaries := getDictionaryItems(q)
 	if len(dictionaries) == 0 {
 		return errors.New("no dictionary in database")
@@ -151,14 +154,12 @@ func GenerateDictionaryMapping(path string, q godb.Queryer) error {
 		Dictionaries: dictionaries,
 		Package:      packageName,
 	})
-
 	if err != nil {
 		_ = os.RemoveAll(path)
 		return err
 	}
-
-	cmd := exec.Command("go", "fmt", path)
-
+	// #nosec
+	cmd := exec.Command("go", "fmt", filepath.Clean(path))
 	return cmd.Run()
 }
 

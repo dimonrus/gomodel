@@ -1,6 +1,8 @@
 package gomodel
 
 import (
+	"math"
+
 	"github.com/dimonrus/gosql"
 	"github.com/lib/pq"
 )
@@ -29,7 +31,7 @@ func GetDeleteSQL(model IModel) (iSQL gosql.ISQL) {
 					} else {
 						upd.Where().AddExpression(meta.Fields[i].Column+" = ?", meta.Fields[i].Value)
 					}
-					idx.AppendParamPos(int16(meta.Fields[i].Index))
+					idx.AppendParamPos(int16(meta.Fields[i].Index & math.MaxInt16))
 				}
 			} else if meta.Fields[i].IsUnique && !hasPrimaryKey {
 				if !meta.Fields[i].IsNil {
@@ -38,16 +40,16 @@ func GetDeleteSQL(model IModel) (iSQL gosql.ISQL) {
 					} else {
 						upd.Where().AddExpression(meta.Fields[i].Column+" = ?", meta.Fields[i].Value)
 					}
-					idx.AppendParamPos(int16(meta.Fields[i].Index))
+					idx.AppendParamPos(int16(meta.Fields[i].Index & math.MaxInt16))
 				}
 			} else if meta.Fields[i].IsDeletedAt {
 				upd.Set().Append(meta.Fields[i].Column + " = NOW()")
 				upd.Returning().Append(meta.Fields[i].Column, meta.Fields[i].Value)
-				idx.AppendReturningPos(int16(meta.Fields[i].Index))
+				idx.AppendReturningPos(int16(meta.Fields[i].Index & math.MaxInt16))
 			} else if meta.Fields[i].IsUpdatedAt {
 				upd.Set().Append(meta.Fields[i].Column + " = NOW()")
 				upd.Returning().Append(meta.Fields[i].Column, meta.Fields[i].Value)
-				idx.AppendReturningPos(int16(meta.Fields[i].Index))
+				idx.AppendReturningPos(int16(meta.Fields[i].Index & math.MaxInt16))
 			}
 		}
 		if !upd.Where().IsEmpty() {
@@ -66,7 +68,7 @@ func GetDeleteSQL(model IModel) (iSQL gosql.ISQL) {
 					} else {
 						del.Where().AddExpression(meta.Fields[i].Column+" = ?", meta.Fields[i].Value)
 					}
-					idx.AppendParamPos(int16(meta.Fields[i].Index))
+					idx.AppendParamPos(int16(meta.Fields[i].Index & math.MaxInt16))
 				}
 			} else if meta.Fields[i].IsUnique && !hasPrimaryKey {
 				if meta.Fields[i].Value != nil {
@@ -75,7 +77,7 @@ func GetDeleteSQL(model IModel) (iSQL gosql.ISQL) {
 					} else {
 						del.Where().AddExpression(meta.Fields[i].Column+" = ?", meta.Fields[i].Value)
 					}
-					idx.AppendParamPos(int16(meta.Fields[i].Index))
+					idx.AppendParamPos(int16(meta.Fields[i].Index & math.MaxInt16))
 				}
 			}
 		}
