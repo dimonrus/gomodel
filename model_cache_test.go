@@ -49,9 +49,9 @@ func BenchmarkCache_Key(b *testing.B) {
 // goos: darwin
 // goarch: arm64
 // pkg: github.com/dimonrus/gomodel
-// cpu: Apple M2 Max
+// cpu: Apple M5
 // BenchmarkCache_KeyValue
-// BenchmarkCache_KeyValue-12    	16706208	        63.15 ns/op	     112 B/op	       1 allocs/op
+// BenchmarkCache_KeyValue-10    	27959812	        42.03 ns/op	     112 B/op	       1 allocs/op
 func BenchmarkCache_KeyValue(b *testing.B) {
 	m := InsertModel1{Name: &ACMName, SomeInt: &ACMSomeInt}
 	for i := 0; i < b.N; i++ {

@@ -2,6 +2,7 @@ package gomodel
 
 import (
 	"database/sql"
+
 	"github.com/dimonrus/godb/v2"
 	"github.com/dimonrus/gohelp"
 	"github.com/dimonrus/gosql"
@@ -94,6 +95,9 @@ func (c *Collection[T]) scan(rows *sql.Rows) (e porterr.IError) {
 			return
 		}
 		c.AddItem(model.(*T))
+	}
+	if err := rows.Err(); err != nil {
+		return porterr.New(porterr.PortErrorIO, "collection iteration error: "+err.Error())
 	}
 	return
 }

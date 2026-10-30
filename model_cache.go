@@ -1,8 +1,9 @@
 package gomodel
 
 import (
-	"github.com/dimonrus/gosql"
 	"sync"
+
+	"github.com/dimonrus/gosql"
 )
 
 // IndexOperation type of operation for specific model
@@ -75,10 +76,13 @@ func (c *cache) Get(io IndexOperation, model IModel, field ...any) gosql.ISQL {
 		c.setModelColumns(table, columns)
 	}
 	key := c.Key(io, table, columns, values, field...)
-	if v, ok := c.models[key]; ok {
-		return v.ToISQL(values)
+	c.m.RLock()
+	index, ok := c.models[key]
+	c.m.RUnlock()
+	if !ok {
+		return nil
 	}
-	return nil
+	return index.ToISQL(values)
 }
 
 // Reset map
